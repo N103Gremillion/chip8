@@ -1,49 +1,49 @@
 #ifndef CHIP8_HPP
 #define CHIP8_HPP
 
+#include <cstdint>
+#include <iostream>
 
 // constants
 #define RAM_START 0x000
-#define CHIP8_PROGRAM_START = 0X200
-#define ETI660_PROGRAM_START = 0X600
 #define RAM_END = 0XFFF
 
-class Chip8 {
-    public:
-        // memory
-        
-        // General 8bit Registers
-        int V0;
-        int V1; 
-        int V2; 
-        int V3; 
-        int V4;
-        int V5;
-        int V6;
-        int V7;
-        int V8;
-        int V9;
-        int VA;
-        int VB;
-        int VC;
-        int VD;
-        int VE;
-        int VF;
+using u8 = std::uint8_t;
+using u16 = std::uint16_t;
 
+typedef struct Chip8{
+    
+    // memory 4096 bytes
+    u8 ram[4096];
 
-        // 16bit register for memory addresses
-        int I;
-        
-        // sepecial 8bit registers for delay and sound timers
-        int delay_timer;
-        int sound_timer;
+    // General 8bit Registers
+    u8 V[16];
+    
+    // 16bit stack
+    u16 stack[16];
 
-        // 16bit program counter
-        int PC;
+    // specific registers
+    u16 I; // memory address register
+    u8 delay_timer;
+    u8 sound_timer;
+    u16 PC; // program counter 
+    u8 SP; // stack pointer
 
-        // 8bit stack pointer
-        int SP;
-}
+    // screen (represented by 64*32 pixel screen)
+    bool screen[32][64];
 
+    Chip8() {
+        std::fill(std::begin(ram), std::end(ram), 0);
+        std::fill(std::begin(V), std::end(V), 0);
+        std::fill(std::begin(stack), std::end(stack), 0);
+        I = 0;
+        delay_timer = 0;
+        sound_timer = 0;
+        PC = 0x200; // this is the standard starting adress for CHIP-8 programs
+        SP = 0;
+        std::fill(&screen[0][0], &screen[0][0] +  sizeof(screen), false);
+    }
 
-#endif CHIP8_HPP
+}Chip8;
+
+#endif 
