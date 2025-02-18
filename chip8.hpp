@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <cstdio>
 #include "register.hpp"
 
 using namespace std;
@@ -20,6 +21,7 @@ u16 fetch_intruction(Chip8& chip);
 void run(Chip8& chip);
 void printMemory(Chip8& chip);
 void printStack(Chip8& chip);
+void printHex(u16 hex);
 
 typedef struct Chip8{
     

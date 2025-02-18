@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 
+
 void load_rom(const std::string& fileName, Chip8& chip) {
   // Open file in binary mode
   ifstream romFile(fileName, ios::binary);
@@ -66,8 +67,7 @@ void printMemory(Chip8& chip) {
 }
 
 void perform_instruction(u16 instruction) {
-  
-  // niblets= (4 bits)
+  // niblets = (4 bits)
   u8 opcode = instruction >> 12; // defines the type of instruction
 
   switch (opcode) {
@@ -82,65 +82,155 @@ void perform_instruction(u16 instruction) {
           printf("return \n");
           break;
       }
+      break;
     case 0x1:
-      //jump to the nnn register 
+      // jump to the nnn register
       printf("jump \n");
+      break;
     case 0x2:
-      // call insturciton
+      // call instruction
       printf("call \n");
+      break;
     case 0x3:
-      // skip next insturction Vx = kk
+      // skip next instruction Vx = kk
       printf("check skip \n");
+      break;
     case 0x4:
-      // skip next instuction if Vx != kk
+      // skip next instruction if Vx != kk
       printf("check skip \n");
-    case 0x5: 
-      // skip next instuction if Vx = Vy 
+      break;
+    case 0x5:
+      // skip next instruction if Vx = Vy
       printf("check skip \n");
+      break;
     case 0x6:
       // put value kk into register Vx
       printf("put in reg \n");
+      break;
     case 0x7:
       // add kk to the value of register Vx, then store result in Vx
       printf("add to reg and set \n");
-    case 0x8:
+      break;
+    case 0x8: {
       u8 finalNib = (instruction & 0xF);
       switch (finalNib) {
         case 0x1:
-          // perfoms bitwise OR on the values of Vx and Vy, and stores the result in Vx
-          printf("OR Vx and Vy then stor in Vx \n");
+          // performs bitwise OR on the values of Vx and Vy, and stores the result in Vx
+          printf("OR Vx and Vy then store in Vx \n");
+          break;
         case 0x2:
-          // perorms bitwise AND on values in Vx and Vy and stores in Vx
+          // performs bitwise AND on values in Vx and Vy and stores in Vx
           printf("AND Vx and Vy then store in Vx \n");
+          break;
         case 0x3:
-          // performs bitwise exclusive OR On value in Vx and Vy and stores in Vx
+          // performs bitwise exclusive OR on values in Vx and Vy and stores in Vx
           printf("XOR Vx and Vy then store in Vx \n");
+          break;
         case 0x4:
-          // ADD Vx and Vy values if res is > 8bits (255) VF is set to 1 else 0,
-          // only the lowest 8 bits of the result are kept and stored in Vx
+          // ADD Vx and Vy values; if result > 8 bits, VF is set to 1, else 0
           printf("ADD and do some checks \n");
+          break;
         case 0x5:
-          // if Vx > Vy VF is set to 1, else 0. 
-          // then Vy is subtracted from Vx, and res is stored in Vx
+          // if Vx > Vy, VF is set to 1, else 0
           printf("Subtract and other stuff \n");
+          break;
         case 0x6:
-          // if LSB(least significant bit) of Vx is 1, then VF is set to 1, else 0. 
-          // then Vx is divided by 2
+          // if LSB of Vx is 1, then VF is set to 1, else 0. Then Vx is divided by 2
           printf("check LSB and divide Vx by 2 \n");
+          break;
         case 0x7:
-          // if Vy > Vx, then VF is set to 1, else 0. then Vx is subtracted from Vy, and res is in Vx
+          // if Vy > Vx, VF is set to 1, else 0. Then Vx is subtracted from Vy
           printf("check if Vy > Vx then sub Vx from Vy and store in Vx \n");
+          break;
         case 0xE:
-          // if MSB(most sig bit) of Vx is 1, then GVF is set to 1, else 0. Then Vx is multiplied by 2.
-          printf("check MSB and the multiply Vx by 2");
+          // if MSB of Vx is 1, VF is set to 1, else 0. Then Vx is multiplied by 2
+          printf("check MSB and then multiply Vx by 2\n");
+          break;
       }
+    }
+      break;
     case 0x9:
-      // skip next insturction if Vx != Vy
+      // skip next instruction if Vx != Vy
       printf("If Vx != Vy pc += 2 \n");
-
+      break;
+    case 0xA:
+      // value of register I is set to nnn
+      printf("set I to nnn \n");
+      break;
+    case 0xB:
+      // Jump to location nnn + V0
+      printf("pc = nnn + V0 \n");
+      break;
+    case 0xC:
+      // generate random num (0 - 255), AND with value kk, store in Vx
+      printf("AND random num with kk and store in Vx \n");
+      break;
+    case 0xD:
+      // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
+      printf("Sprite rendering and other stuff \n");
+      break;
+    case 0xE: {
+      u8 last8 = (instruction & 0xFF);
+      switch (last8) {
+        case 0x9E:
+          // skip next instruction if key with value of Vx is pressed
+          printf("check keyboard and if key is pressed that is in Vx skip next instruction \n");
+          break;
+        case 0xA1:
+          // skip next instruction if key with value of Vx is not pressed
+          printf("checks keyboard and if key is not pressed that is in Vx skip next instruction \n");
+          break;
+      }
+      break;
+    }
+    case 0xF: {
+      u8 last8 = (instruction & 0xFF);
+      switch (last8) {
+        case 0x07:
+          // set Vx = delay_timer value
+          printf("Vx = delay_timer\n");
+          break;
+        case 0x0A:
+          // Wait for key press, store value in Vx
+          printf("wait for key press and store in Vx \n");
+          break;
+        case 0x15:
+          // set delay timer to Vx
+          printf("delay_timer = Vx \n");
+          break;
+        case 0x18:
+          // set sound timer = Vx
+          printf("sound_timer = Vx \n");
+          break;
+        case 0x1E:
+          // set I = I + Vx
+          printf("I = I + Vx \n");
+          break;
+        case 0x29:
+          // value of I is set to location of the hex sprite corresponding to the value of Vx
+          printf("I set to sprite hex in Vx \n");
+          break;
+        case 0x33:
+          // take decimal value of Vx, place hundreds, tens, and ones digit in memory at I, I+1, I+2
+          printf("Some decimal val in Vx are placed in I register locations\n");
+          break;
+        case 0x55:
+          // copies values of V0 through Vx into memory, starting at the address in I
+          printf("value of V0 is copied into memory through Vx starting at the address in I \n");
+          break;
+        case 0x65:
+          // read values from memory starting at I into registers V0 through Vx
+          printf("copy values from memory starting at location I into V0 through Vx\n");
+          break;
+      }
+      break;
+    }
   }
-  
 }
+
+
+  
+
 
 
 
