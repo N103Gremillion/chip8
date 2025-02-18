@@ -67,7 +67,7 @@ void printMemory(Chip8& chip) {
 
 void perform_instruction(u16 instruction) {
   
-  // niblets
+  // niblets= (4 bits)
   u8 opcode = instruction >> 12; // defines the type of instruction
 
   switch (opcode) {
@@ -84,7 +84,59 @@ void perform_instruction(u16 instruction) {
       }
     case 0x1:
       //jump to the nnn register 
-      int reg = instruction & 0x0FFF;
+      printf("jump \n");
+    case 0x2:
+      // call insturciton
+      printf("call \n");
+    case 0x3:
+      // skip next insturction Vx = kk
+      printf("check skip \n");
+    case 0x4:
+      // skip next instuction if Vx != kk
+      printf("check skip \n");
+    case 0x5: 
+      // skip next instuction if Vx = Vy 
+      printf("check skip \n");
+    case 0x6:
+      // put value kk into register Vx
+      printf("put in reg \n");
+    case 0x7:
+      // add kk to the value of register Vx, then store result in Vx
+      printf("add to reg and set \n");
+    case 0x8:
+      u8 finalNib = (instruction & 0xF);
+      switch (finalNib) {
+        case 0x1:
+          // perfoms bitwise OR on the values of Vx and Vy, and stores the result in Vx
+          printf("OR Vx and Vy then stor in Vx \n");
+        case 0x2:
+          // perorms bitwise AND on values in Vx and Vy and stores in Vx
+          printf("AND Vx and Vy then store in Vx \n");
+        case 0x3:
+          // performs bitwise exclusive OR On value in Vx and Vy and stores in Vx
+          printf("XOR Vx and Vy then store in Vx \n");
+        case 0x4:
+          // ADD Vx and Vy values if res is > 8bits (255) VF is set to 1 else 0,
+          // only the lowest 8 bits of the result are kept and stored in Vx
+          printf("ADD and do some checks \n");
+        case 0x5:
+          // if Vx > Vy VF is set to 1, else 0. 
+          // then Vy is subtracted from Vx, and res is stored in Vx
+          printf("Subtract and other stuff \n");
+        case 0x6:
+          // if LSB(least significant bit) of Vx is 1, then VF is set to 1, else 0. 
+          // then Vx is divided by 2
+          printf("check LSB and divide Vx by 2 \n");
+        case 0x7:
+          // if Vy > Vx, then VF is set to 1, else 0. then Vx is subtracted from Vy, and res is in Vx
+          printf("check if Vy > Vx then sub Vx from Vy and store in Vx \n");
+        case 0xE:
+          // if MSB(most sig bit) of Vx is 1, then GVF is set to 1, else 0. Then Vx is multiplied by 2.
+          printf("check MSB and the multiply Vx by 2");
+      }
+    case 0x9:
+      // skip next insturction if Vx != Vy
+      printf("If Vx != Vy pc += 2 \n");
 
   }
   
