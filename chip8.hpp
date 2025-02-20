@@ -16,9 +16,10 @@ const int RAM_SIZE = 4096;
 struct Chip8;
 
 void load_rom(const string& fileName, Chip8& chip);
-void perform_instruction(u16 instruction);
+void perform_instruction(u16 instruction, Chip8& chip);
 u16 fetch_intruction(Chip8& chip);
 void run(Chip8& chip);
+void put_value_in_Vreg(int regNum, u8 value, Chip8& chip);
 void printMemory(Chip8& chip);
 void printStack(Chip8& chip);
 void printHex(u16 hex);

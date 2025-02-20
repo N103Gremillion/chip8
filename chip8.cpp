@@ -49,11 +49,70 @@ void printStack(Chip8& chip) {
 
 // MAIN FUNCTIONS
 void run(Chip8& chip) {
-  while(true) {
+  int limit = 5;
+  int counter = 0;
+  while(counter < limit) {
     // fetch an instruction
     u16 instuction = fetch_intruction(chip);
-    perform_instruction(instuction);
+    perform_instruction(instuction, chip);
+    counter++;
   }
+}
+
+void put_value_in_Vreg(int regNum, u8 value, Chip8& chip) {
+    if (regNum > 15 || regNum < 0) {
+      return;
+    }
+    switch (regNum) {
+      case 0:
+        chip.regs->v0 = value;
+        break;
+      case 1:
+        chip.regs->v1 = value;
+        break;
+      case 2:
+        chip.regs->v2 = value;
+        break;
+      case 3:
+        chip.regs->v3 = value;
+        break;
+      case 4:
+        chip.regs->v4 = value;
+        break;
+      case 5:
+        chip.regs->v5 = value;
+        break;
+      case 6:
+        chip.regs->v6 = value;
+        break;
+      case 7:
+        chip.regs->v7 = value;
+        break;
+      case 8:
+        chip.regs->v8 = value;
+        break;
+      case 9:
+        chip.regs->v9 = value;
+        break;
+      case 10:
+        chip.regs->vA = value;
+        break;
+      case 11:
+        chip.regs->vB = value;
+        break;
+      case 12:
+        chip.regs->vC = value;
+        break;
+      case 13:
+        chip.regs->vD = value;
+        break;
+      case 14:
+        chip.regs->vE = value;
+        break;
+      case 15:  
+        chip.regs->vF = value;
+        break;
+    }
 }
 
 u16 fetch_intruction(Chip8& chip) {
@@ -70,7 +129,7 @@ void printMemory(Chip8& chip) {
   cout << std::dec << std::endl;
 }
 
-void perform_instruction(u16 instruction) {
+void perform_instruction(u16 instruction, Chip8& chip) {
   // niblets = (4 bits)
   u8 opcode = instruction >> 12; // defines the type of instruction
 
@@ -107,10 +166,13 @@ void perform_instruction(u16 instruction) {
       // skip next instruction if Vx = Vy
       printf("check skip \n");
       break;
-    case 0x6:
+    case 0x6: {
       // put value kk into register Vx
-      printf("put in reg \n");
+      u8 kk = (instruction & 0xFF);
+      int x = (int) ((instruction >> 8) & 0xF);
+      put_value_in_Vreg(x, kk, chip);
       break;
+    }
     case 0x7:
       // add kk to the value of register Vx, then store result in Vx
       printf("add to reg and set \n");
@@ -157,10 +219,12 @@ void perform_instruction(u16 instruction) {
       // skip next instruction if Vx != Vy
       printf("If Vx != Vy pc += 2 \n");
       break;
-    case 0xA:
+    case 0xA: {
       // value of register I is set to nnn
-      printf("set I to nnn \n");
+      u16 nnn = (instruction & 0xFFF);
+      chip.regs->I = nnn;
       break;
+    }
     case 0xB:
       // Jump to location nnn + V0
       printf("pc = nnn + V0 \n");
@@ -171,7 +235,13 @@ void perform_instruction(u16 instruction) {
       break;
     case 0xD:
       // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
-      printf("Sprite rendering and other stuff \n");
+      int n = (int) (instruction & 0xF);
+      u16 memory_location = chip.regs->I;
+      while (n > 0) {
+        u8 cur_byte = chip.ram[memory_location];
+        memory_location++;
+        n--;
+      } 
       break;
     case 0xE: {
       u8 last8 = (instruction & 0xFF);
