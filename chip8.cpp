@@ -49,7 +49,11 @@ void printStack(Chip8& chip) {
 
 // MAIN FUNCTIONS
 void run(Chip8& chip) {
-
+  while(true) {
+    // fetch an instruction
+    u16 instuction = fetch_intruction(chip);
+    perform_instruction(instuction);
+  }
 }
 
 u16 fetch_intruction(Chip8& chip) {
