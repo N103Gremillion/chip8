@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstdio>
 #include "register.hpp"
+#include "screen.hpp"
 
 using namespace std;
 using u8 = std::uint8_t;
@@ -20,6 +21,7 @@ void perform_instruction(u16 instruction, Chip8& chip);
 u16 fetch_intruction(Chip8& chip);
 void run(Chip8& chip);
 void put_value_in_Vreg(int regNum, u8 value, Chip8& chip);
+void free_chip(Chip8& chip);
 void printMemory(Chip8& chip);
 void printStack(Chip8& chip);
 void printHex(u16 hex);
@@ -33,22 +35,14 @@ typedef struct Chip8{
     // 16 values are allowed 
     u16 *stack;
 
-    // screen (represented by 64*32 pixel screen)
-    bool **screen;
-    int screen_width;
-    int screen_height;
+    // 64 * 32 pixel screen
+    Screen screen;
 
     Chip8() {
         ram = (u8*) malloc(sizeof(u8) * RAM_SIZE);
         regs = new Registers();
         stack = (u16*) malloc(sizeof(u16) * 16);
-        screen_width = 64;
-        screen_height = 32;
-        screen = (bool**) malloc(sizeof(bool*) * 32);
-
-        for (int i = 0; i < 32; ++i) {
-            screen[i] = (bool*) malloc(sizeof(bool) * 64);
-        }
+        init_screen(screen);
     };
 
 }Chip8;

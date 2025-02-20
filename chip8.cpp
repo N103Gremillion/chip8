@@ -49,13 +49,27 @@ void printStack(Chip8& chip) {
 
 // MAIN FUNCTIONS
 void run(Chip8& chip) {
-  int limit = 5;
-  int counter = 0;
-  while(counter < limit) {
-    // fetch an instruction
-    u16 instuction = fetch_intruction(chip);
-    perform_instruction(instuction, chip);
-    counter++;
+
+  bool running = true;
+  SDL_Event event;
+
+  while(running) {
+    // Handle use input
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_QUIT) {
+        running = false;
+      }
+    }
+    // execute an instruction
+    u16 instruction = fetch_intruction(chip);
+    perform_instruction(instruction, chip);
+
+    // update timers
+
+    // draw pixels / update screen
+    update_screen(chip.screen);
+
+    
   }
 }
 
@@ -233,7 +247,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       // generate random num (0 - 255), AND with value kk, store in Vx
       printf("AND random num with kk and store in Vx \n");
       break;
-    case 0xD:
+    case 0xD: {
       // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
       int n = (int) (instruction & 0xF);
       u16 memory_location = chip.regs->I;
@@ -243,6 +257,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
         n--;
       } 
       break;
+    }
     case 0xE: {
       u8 last8 = (instruction & 0xFF);
       switch (last8) {
@@ -302,6 +317,13 @@ void perform_instruction(u16 instruction, Chip8& chip) {
   }
 }
 
+void free_chip(Chip8& chip) {
+  // free everything from the stack
+  free(chip.ram);
+  delete chip.regs;
+  free(chip.stack);
+  free_screen(chip.screen);
+}
 
   
 
