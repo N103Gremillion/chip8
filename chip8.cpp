@@ -129,6 +129,65 @@ void put_value_in_Vreg(int regNum, u8 value, Chip8& chip) {
     }
 }
 
+u8 get_value_in_Vreg(int regNum, Chip8& chip) {
+  if (regNum < 0 || regNum > 15) {
+    return -1;
+  }
+  switch (regNum) {
+      case 0:
+        return chip.regs->v0;
+        break;
+      case 1:
+        return chip.regs->v1;
+        break;
+      case 2:
+        return chip.regs->v2;
+        break;
+      case 3:
+        return chip.regs->v3;
+        break;
+      case 4:
+        return chip.regs->v4;
+        break;
+      case 5:
+        return chip.regs->v5;
+        break;
+      case 6:
+        return chip.regs->v6;
+        break;
+      case 7:
+        return chip.regs->v7;
+        break;
+      case 8:
+        return chip.regs->v8;
+        break;
+      case 9:
+        return chip.regs->v9;
+        break;
+      case 10:
+        return chip.regs->vA;
+        break;
+      case 11:
+        return chip.regs->vB;
+        break;
+      case 12:
+        return chip.regs->vC;
+        break;
+      case 13:
+        return chip.regs->vD;
+        break;
+      case 14:
+        return chip.regs->vE;
+        break;
+      case 15:  
+        return chip.regs->vF;
+        break;
+      default:
+        return -1;
+        break;
+  }
+}
+
 u16 fetch_intruction(Chip8& chip) {
   u16 pc = chip.regs->pc;
   u16 instruction = (chip.ram[pc] << 8) | chip.ram[pc + 1];
@@ -166,7 +225,13 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     case 0x2:
       // call instruction
-      printf("call \n");
+      if (chip.regs->sp >= 16 - 1) {
+        std::cerr<<"Stack overflow"<<std::endl;
+      } else {
+        chip.regs->sp++;
+        chip.stack[chip.regs->sp] = chip.regs->pc;
+        chip.regs->pc = (instruction & 0xFFF);
+      }
       break;
     case 0x3:
       // skip next instruction Vx = kk
@@ -249,12 +314,29 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     case 0xD: {
       // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
+      int x_reg_num = (int) ((instruction >> 8) & 0xF);
+      int y_reg_num = (int) ((instruction >> 4) & 0xF);
       int n = (int) (instruction & 0xF);
+      int x = get_value_in_Vreg(x_reg_num, chip) & 63; // % 64 helps it wrap 
+      int y = get_value_in_Vreg(y_reg_num, chip) & 31; // %32 helps it wrap
       u16 memory_location = chip.regs->I;
+
+      put_value_in_Vreg(15, 0x00, chip);
+
       while (n > 0) {
         u8 cur_byte = chip.ram[memory_location];
+        bool set_Vf_to_1 = draw_pixel_row(x, y, chip.screen, cur_byte);
+        if (set_Vf_to_1) {
+          put_value_in_Vreg(15, 1, chip); // if collision occurs set VF to 1
+        }
+        // Update coordinates for the next row of pixels
+        y++;
         memory_location++;
         n--;
+        // stop when you hit the bottom of screen
+        if (y >= 32) {
+          break;
+        }
       } 
       break;
     }

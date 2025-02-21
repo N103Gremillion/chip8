@@ -21,6 +21,7 @@ void perform_instruction(u16 instruction, Chip8& chip);
 u16 fetch_intruction(Chip8& chip);
 void run(Chip8& chip);
 void put_value_in_Vreg(int regNum, u8 value, Chip8& chip);
+u8 get_value_in_Vreg(int regNum, Chip8& chip);
 void free_chip(Chip8& chip);
 void printMemory(Chip8& chip);
 void printStack(Chip8& chip);

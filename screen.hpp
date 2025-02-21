@@ -12,11 +12,13 @@
 #define PIXELS_PER_COLUMN 32
 
 using u32 = std::uint32_t;
+using u8 = std::uint8_t;
 
 struct Screen;
 
 void init_screen(Screen& screen);
 void update_screen(Screen& screen);
+bool draw_pixel_row(int x, int y, Screen& screen, u8 byte); // given start x, y and a u8 XOR this onto the screen
 void free_screen(Screen& screen);
 
 
