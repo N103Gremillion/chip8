@@ -61,7 +61,7 @@ void run(Chip8& chip) {
       }
     }
     // execute an instruction
-    u16 instruction = fetch_intruction(chip);
+    u16 instruction = fetch_instruction(chip);
     perform_instruction(instruction, chip);
 
     // update timers
@@ -188,7 +188,7 @@ u8 get_value_in_Vreg(int regNum, Chip8& chip) {
   }
 }
 
-u16 fetch_intruction(Chip8& chip) {
+u16 fetch_instruction(Chip8& chip) {
   u16 pc = chip.regs->pc;
   u16 instruction = (chip.ram[pc] << 8) | chip.ram[pc + 1];
   chip.regs->pc+=2;
@@ -202,28 +202,43 @@ void printMemory(Chip8& chip) {
   cout << std::dec << std::endl;
 }
 
+void free_chip(Chip8& chip) {
+  // free everything from the stack
+  free(chip.ram);
+  delete chip.regs;
+  free(chip.stack);
+  free_screen(chip.screen);
+}
+
+  
 void perform_instruction(u16 instruction, Chip8& chip) {
   // niblets = (4 bits)
   u8 opcode = instruction >> 12; // defines the type of instruction
 
   switch (opcode) {
+
     case 0x0:
       switch (instruction) {
         // clear screen
-        case 0x00E0:
-          printf("clear screen \n");
+        case 0x00E0: 
+          clear_screen(chip.screen);
           break;
-        // return from subroutine
+        // return from subroutine sets pc to address at top of stck then sp --
         case 0x00EE:
-          printf("return \n");
+          chip.regs->sp--;
+          chip.regs->pc = chip.stack[chip.regs->sp];
+          // chip.stack[chip.regs->sp] = chip.regs->pc;
           break;
       }
-      break;
-    case 0x1:
+
+    case 0x1: {
       // jump to the nnn register
-      printf("jump \n");
+      u16 nnn = (instruction & 0xFFF);
+      chip.regs->pc = nnn;
       break;
-    case 0x2:
+    }
+
+    case 0x2: {
       // call instruction
       if (chip.regs->sp >= 16 - 1) {
         std::cerr<<"Stack overflow"<<std::endl;
@@ -233,18 +248,39 @@ void perform_instruction(u16 instruction, Chip8& chip) {
         chip.regs->pc = (instruction & 0xFFF);
       }
       break;
-    case 0x3:
+    }
+
+    case 0x3: {
       // skip next instruction Vx = kk
-      printf("check skip \n");
+      u8 kk = (instruction & 0xFF);
+      int reg_num = (int) ((instruction >> 8) & 0xF);
+      if (kk == get_value_in_Vreg(reg_num, chip)) {
+        chip.regs->pc += 2;
+      }
       break;
-    case 0x4:
+    }
+
+    case 0x4: {
       // skip next instruction if Vx != kk
-      printf("check skip \n");
+      u8 kk = (instruction & 0xFF);
+      int reg_num = (int) ((instruction >> 8) & 0xF);
+      if (kk != get_value_in_Vreg(reg_num, chip)) {
+        chip.regs->pc += 2;
+      }
       break;
-    case 0x5:
+    }
+
+    case 0x5: {
       // skip next instruction if Vx = Vy
+      int x_reg_num = ((instruction >> 8) & 0xF);
+      int y_reg_num = ((instruction >> 4) & 0xF);
+      if (get_value_in_Vreg(x_reg_num, chip) == get_value_in_Vreg(y_reg_num, chip)) {
+        chip.regs->pc += 2;
+      }
       printf("check skip \n");
       break;
+    }
+
     case 0x6: {
       // put value kk into register Vx
       u8 kk = (instruction & 0xFF);
@@ -252,10 +288,16 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       put_value_in_Vreg(x, kk, chip);
       break;
     }
-    case 0x7:
+
+    case 0x7: {
       // add kk to the value of register Vx, then store result in Vx
-      printf("add to reg and set \n");
+      u8 kk = (instruction & 0xFF);
+      int x_reg_num = ((instruction >> 8) & 0xF);
+      u8 new_reg_val = get_value_in_Vreg(x_reg_num, chip) + kk;
+      put_value_in_Vreg(x_reg_num, new_reg_val, chip);
       break;
+    }
+
     case 0x8: {
       u8 finalNib = (instruction & 0xF);
       switch (finalNib) {
@@ -399,15 +441,6 @@ void perform_instruction(u16 instruction, Chip8& chip) {
   }
 }
 
-void free_chip(Chip8& chip) {
-  // free everything from the stack
-  free(chip.ram);
-  delete chip.regs;
-  free(chip.stack);
-  free_screen(chip.screen);
-}
-
-  
 
 
 

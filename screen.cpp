@@ -22,6 +22,13 @@ void update_screen(Screen& screen) {
   SDL_RenderPresent(screen.render);
 }
 
+void clear_screen(Screen& screen) {
+  // set all pixels to black (off)
+  for (int i = 0; i < (TOTAL_PIXELS); i++) {
+    screen.pixels[i] = BLACK;
+  }
+}
+
 bool draw_pixel_row(int x, int y, Screen& screen, u8 byte) {
   x -=1;
   y -= 1;
@@ -33,7 +40,7 @@ bool draw_pixel_row(int x, int y, Screen& screen, u8 byte) {
     int cur_bit = (int) ((byte >> (7 - cur_bit_index)) & 0x1);
     int screen_index = y * PIXELS_PER_ROW + x;
     int screen_bit = (int) (screen.pixels[screen_index] & 0x1);
-    std::cout << "x: " << x << ", y: " << y << std::endl;
+
     if (cur_bit ^ screen_bit) {
       if (cur_bit == 1) {
         screen.pixels[screen_index] = WHITE;
