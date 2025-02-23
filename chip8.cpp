@@ -219,10 +219,12 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
     case 0x0:
       switch (instruction) {
+
         // clear screen
         case 0x00E0: 
           clear_screen(chip.screen);
           break;
+
         // return from subroutine sets pc to address at top of stck then sp --
         case 0x00EE:
           chip.regs->sp--;
@@ -231,15 +233,15 @@ void perform_instruction(u16 instruction, Chip8& chip) {
           break;
       }
 
+    // jump to the nnn register
     case 0x1: {
-      // jump to the nnn register
       u16 nnn = (instruction & 0xFFF);
       chip.regs->pc = nnn;
       break;
     }
 
+    // call instruction
     case 0x2: {
-      // call instruction
       if (chip.regs->sp >= 16 - 1) {
         std::cerr<<"Stack overflow"<<std::endl;
       } else {
@@ -250,8 +252,8 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     }
 
+    // skip next instruction Vx = kk
     case 0x3: {
-      // skip next instruction Vx = kk
       u8 kk = (instruction & 0xFF);
       int reg_num = (int) ((instruction >> 8) & 0xF);
       if (kk == get_value_in_Vreg(reg_num, chip)) {
@@ -260,8 +262,8 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     }
 
+    // skip next instruction if Vx != kk
     case 0x4: {
-      // skip next instruction if Vx != kk
       u8 kk = (instruction & 0xFF);
       int reg_num = (int) ((instruction >> 8) & 0xF);
       if (kk != get_value_in_Vreg(reg_num, chip)) {
@@ -270,8 +272,8 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     }
 
+    // skip next instruction if Vx = Vy
     case 0x5: {
-      // skip next instruction if Vx = Vy
       int x_reg_num = ((instruction >> 8) & 0xF);
       int y_reg_num = ((instruction >> 4) & 0xF);
       if (get_value_in_Vreg(x_reg_num, chip) == get_value_in_Vreg(y_reg_num, chip)) {
@@ -281,16 +283,16 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     }
 
+    // put value kk into register Vx
     case 0x6: {
-      // put value kk into register Vx
       u8 kk = (instruction & 0xFF);
       int x = (int) ((instruction >> 8) & 0xF);
       put_value_in_Vreg(x, kk, chip);
       break;
     }
 
+    // add kk to the value of register Vx, then store result in Vx
     case 0x7: {
-      // add kk to the value of register Vx, then store result in Vx
       u8 kk = (instruction & 0xFF);
       int x_reg_num = ((instruction >> 8) & 0xF);
       u8 new_reg_val = get_value_in_Vreg(x_reg_num, chip) + kk;
@@ -300,39 +302,74 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
     case 0x8: {
       u8 finalNib = (instruction & 0xF);
+      int x_reg_num = ((instruction >> 8) & 0xF);
+      int y_reg_num = ((instruction >> 4) & 0xF);
+      u8 Vy = get_value_in_Vreg(y_reg_num, chip);
+      u8 Vx = get_value_in_Vreg(x_reg_num, chip);
+
       switch (finalNib) {
-        case 0x1:
-          // performs bitwise OR on the values of Vx and Vy, and stores the result in Vx
-          printf("OR Vx and Vy then store in Vx \n");
+        
+        // store value in Vy in Vx register
+        case 0x0:
+          put_value_in_Vreg(x_reg_num, Vy, chip);
           break;
+
+        // performs bitwise OR on the values of Vx and Vy, and stores the result in Vx   
+        case 0x1: 
+          put_value_in_Vreg(x_reg_num, (Vx | Vy), chip);
+          break;
+
+        // performs bitwise AND on values in Vx and Vy and stores in Vx
         case 0x2:
-          // performs bitwise AND on values in Vx and Vy and stores in Vx
-          printf("AND Vx and Vy then store in Vx \n");
+          put_value_in_Vreg(x_reg_num, (Vx & Vy), chip);
           break;
+
+        // performs bitwise exclusive OR on values in Vx and Vy and stores in Vx
         case 0x3:
-          // performs bitwise exclusive OR on values in Vx and Vy and stores in Vx
-          printf("XOR Vx and Vy then store in Vx \n");
+          put_value_in_Vreg(x_reg_num, (Vx ^ Vy), chip);
           break;
-        case 0x4:
-          // ADD Vx and Vy values; if result > 8 bits, VF is set to 1, else 0
-          printf("ADD and do some checks \n");
+
+        // ADD Vx and Vy values; if result > 8 bits, VF is set to 1, else 0
+        case 0x4: {
+          u16 sum = (u16)Vx +(u16)Vy;
+          u8 result = (u8)sum;
+          u8 carry = (sum > 255) ? 1 : 0;
+          put_value_in_Vreg(x_reg_num, result, chip);
+          put_value_in_Vreg(0xF, carry, chip);
           break;
-        case 0x5:
-          // if Vx > Vy, VF is set to 1, else 0
-          printf("Subtract and other stuff \n");
+        }
+
+        // if Vx > Vy, VF is set to 1, else 0
+        case 0x5: {
+          u8 carry = (Vx > Vy) ? 1 : 0;
+          put_value_in_Vreg(x_reg_num, (Vx - Vy), chip);
+          put_value_in_Vreg(0xF, carry, chip);
           break;
-        case 0x6:
-          // if LSB of Vx is 1, then VF is set to 1, else 0. Then Vx is divided by 2
-          printf("check LSB and divide Vx by 2 \n");
+        }
+
+        // if LSB of Vx is 1, then VF is set to 1, else 0. Then Vx is divided by 2
+        case 0x6: {
+          u8 lsb = (Vx & 0x1);
+          put_value_in_Vreg(0xF, lsb, chip);
+          put_value_in_Vreg(x_reg_num, (Vx >> 1), chip);
           break;
-        case 0x7:
-          // if Vy > Vx, VF is set to 1, else 0. Then Vx is subtracted from Vy
-          printf("check if Vy > Vx then sub Vx from Vy and store in Vx \n");
+        }
+
+        // if Vy > Vx, VF is set to 1, else 0. Then Vx is subtracted from Vy
+        case 0x7: {
+          u8 carry = (Vy > Vx) ? 1 : 0;
+          put_value_in_Vreg(x_reg_num, (Vy - Vx), chip);
+          put_value_in_Vreg(0xF, carry, chip);
           break;
-        case 0xE:
-          // if MSB of Vx is 1, VF is set to 1, else 0. Then Vx is multiplied by 2
-          printf("check MSB and then multiply Vx by 2\n");
+        }
+
+        // if MSB of Vx is 1, VF is set to 1, else 0. Then Vx is multiplied by 2
+        case 0xE: {
+          u8 msb = (Vx >> 7);
+          put_value_in_Vreg(x_reg_num, (Vx << 1), chip);
+          put_value_in_Vreg(0xF, msb, chip);
           break;
+        }
       }
     }
       break;
@@ -435,9 +472,9 @@ void perform_instruction(u16 instruction, Chip8& chip) {
           // read values from memory starting at I into registers V0 through Vx
           printf("copy values from memory starting at location I into V0 through Vx\n");
           break;
+        }
       }
-      break;
-    }
+    break;
   }
 }
 
