@@ -64,8 +64,6 @@ void run(Chip8& chip) {
     u16 instruction = fetch_instruction(chip);
     perform_instruction(instruction, chip);
 
-    // update timers
-
     // draw pixels / update screen
     update_screen(chip.screen);
 
@@ -382,13 +380,14 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
 
     // skip next instruction if Vx != Vy
-    case 0x9:
+    case 0x9:{
       u8 x_reg_num = (instruction >> 8) & 0xF;
       u8 y_reg_num = (instruction >> 4) & 0xF;
       if (get_value_in_Vreg(x_reg_num, chip) != get_value_in_Vreg(y_reg_num, chip)){
         chip.regs->pc += 2;
       }
       break;
+    }
     
     // value of register I is set to nnn
     case 0xA: {
@@ -398,18 +397,20 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     }
 
     // Jump to location nnn + V0
-    case 0xB:
+    case 0xB:{
       u16 nnn = (instruction & 0xFFF);
       chip.regs->pc = (nnn + get_value_in_Vreg(0, chip));
       break;
+    }
 
     // generate random num (0 - 255), AND with value kk, store in Vx
-    case 0xC:
+    case 0xC:{
       u8 kk = (instruction & 0xFF);
       u8 x_reg_num = ((instruction >> 8) & 0xF);
       u8 random_byte = get_random_num(0, 255);
       put_value_in_Vreg(x_reg_num, (kk & random_byte), chip);
       break;
+    }
 
     // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
     case 0xD: {

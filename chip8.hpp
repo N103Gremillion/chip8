@@ -7,6 +7,7 @@
 #include <random>
 #include "register.hpp"
 #include "screen.hpp"
+#include "debugger.hpp"
 
 using namespace std;
 using u8 = std::uint8_t;
@@ -40,12 +41,16 @@ typedef struct Chip8{
 
     // 64 * 32 pixel screen
     Screen screen;
+    
+    // shows the insturctions being run and the keys being pressed
+    Debugger debugger;
 
     Chip8() {
         ram = (u8*) malloc(sizeof(u8) * RAM_SIZE);
         regs = new Registers();
         stack = (u16*) malloc(sizeof(u16) * 16);
         init_screen(screen);
+        init_debugger(debugger);
     };
 
 }Chip8;
