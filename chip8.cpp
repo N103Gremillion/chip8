@@ -69,8 +69,15 @@ void run(Chip8& chip) {
     // draw pixels / update screen
     update_screen(chip.screen);
 
-    
   }
+}
+
+int get_random_num(int min, int max) {
+  static random_device random;
+  static mt19937 gen(random());
+  uniform_int_distribution<int> dist(min, max);
+
+  return dist(gen);
 }
 
 void put_value_in_Vreg(int regNum, u8 value, Chip8& chip) {
@@ -373,26 +380,39 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       }
     }
       break;
+
+    // skip next instruction if Vx != Vy
     case 0x9:
-      // skip next instruction if Vx != Vy
-      printf("If Vx != Vy pc += 2 \n");
+      u8 x_reg_num = (instruction >> 8) & 0xF;
+      u8 y_reg_num = (instruction >> 4) & 0xF;
+      if (get_value_in_Vreg(x_reg_num, chip) != get_value_in_Vreg(y_reg_num, chip)){
+        chip.regs->pc += 2;
+      }
       break;
+    
+    // value of register I is set to nnn
     case 0xA: {
-      // value of register I is set to nnn
       u16 nnn = (instruction & 0xFFF);
       chip.regs->I = nnn;
       break;
     }
+
+    // Jump to location nnn + V0
     case 0xB:
-      // Jump to location nnn + V0
-      printf("pc = nnn + V0 \n");
+      u16 nnn = (instruction & 0xFFF);
+      chip.regs->pc = (nnn + get_value_in_Vreg(0, chip));
       break;
+
+    // generate random num (0 - 255), AND with value kk, store in Vx
     case 0xC:
-      // generate random num (0 - 255), AND with value kk, store in Vx
-      printf("AND random num with kk and store in Vx \n");
+      u8 kk = (instruction & 0xFF);
+      u8 x_reg_num = ((instruction >> 8) & 0xF);
+      u8 random_byte = get_random_num(0, 255);
+      put_value_in_Vreg(x_reg_num, (kk & random_byte), chip);
       break;
+
+    // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
     case 0xD: {
-      // display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
       int x_reg_num = (int) ((instruction >> 8) & 0xF);
       int y_reg_num = (int) ((instruction >> 4) & 0xF);
       int n = (int) (instruction & 0xF);
@@ -419,20 +439,22 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       } 
       break;
     }
+
     case 0xE: {
       u8 last8 = (instruction & 0xFF);
       switch (last8) {
+        // skip next instruction if key with value of Vx is pressed
         case 0x9E:
-          // skip next instruction if key with value of Vx is pressed
           printf("check keyboard and if key is pressed that is in Vx skip next instruction \n");
           break;
+         // skip next instruction if key with value of Vx is not pressed
         case 0xA1:
-          // skip next instruction if key with value of Vx is not pressed
           printf("checks keyboard and if key is not pressed that is in Vx skip next instruction \n");
           break;
       }
       break;
     }
+
     case 0xF: {
       u8 last8 = (instruction & 0xFF);
       switch (last8) {
