@@ -10,13 +10,15 @@ void fill_background(Debugger& debugger) {
 void draw_instructions(Debugger& debugger) {
   // reset location of instruction to correct starting value
   debugger.instruction.y = 0;
-  SDL_Rect text_rect = {0, 0, 0, 0};
 
   for (int i = 0; i < debugger.num_of_instruction; i++) {
+    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, "instruction", debugger.text_color);
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface);
     SDL_RenderDrawRect(debugger.render, &debugger.instruction);
-    SDL_QueryTexture(debugger.text_texture, NULL, NULL, &text_rect.w, &text_rect.h); // querey demensions of the text
-    SDL_RenderCopy(debugger.render, debugger.text_texture, NULL, &debugger.instruction);
+    SDL_RenderCopy(debugger.render, text_texture, NULL, &debugger.instruction);
     debugger.instruction.y += debugger.instruction.h;
+    SDL_FreeSurface(text_surface);
+    SDL_DestroyTexture(text_texture);
   }
 }
 
@@ -24,6 +26,8 @@ void draw_keys(Debugger& debugger) {
   // reset location of key to correct starting value
   debugger.key.x = 210;
   debugger.key.y = 0;
+  SDL_Rect text_rect = {210, 0, debugger.key.w, debugger.key.h};
+  const char* keys[] = {"1", "2", "3", "4", "Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"};
 
   for (int i = 0; i < debugger.num_of_keys; i++) {
     
@@ -32,8 +36,13 @@ void draw_keys(Debugger& debugger) {
       debugger.key.x = 210;
     } else if (i != 0){
       debugger.key.x += debugger.key.w;
-    } 
+    }
+    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, keys[i], debugger.text_color);
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface); 
     SDL_RenderDrawRect(debugger.render, &debugger.key);
+    SDL_RenderCopy(debugger.render, text_texture, NULL, &debugger.key);
+    SDL_FreeSurface(text_surface);
+    SDL_DestroyTexture(text_texture);
   }
 }
 
@@ -46,10 +55,7 @@ void render_debugger(Debugger& debugger) {
 }
 
 void setup_fonts(Debugger& debugger) {
-  debugger.font = TTF_OpenFont("Arial.ttf", 24);
-  debugger.text_surface = TTF_RenderText_Solid(debugger.font, "instruction", debugger.text_color);
-  debugger.text_texture = SDL_CreateTextureFromSurface(debugger.render, debugger.text_surface);
-  free(debugger.text_surface);
+  debugger.font = TTF_OpenFont("./cascadia-code/Cascadia.ttf", 24);
 }
 
 void init_debugger(Debugger& debugger) {

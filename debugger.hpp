@@ -11,6 +11,7 @@
 
 using u16 = std::uint16_t;
 using u8 = std::uint8_t;
+using namespace std;
 
 struct Debugger;
 
@@ -35,6 +36,7 @@ typedef struct Debugger{
   // for the keys part right side
   SDL_Rect key = {210, 0, 45, 50}; // x=200, y=0, w=50, h=50
   int num_of_keys = 16;
+  
 
   // screen (represented by 64*32 pixel screen
   SDL_Window* window = nullptr;
@@ -42,9 +44,7 @@ typedef struct Debugger{
   SDL_Texture* texture = nullptr;
 
   TTF_Font* font = nullptr;
-  SDL_Color text_color = {WHITE};
-  SDL_Surface* text_surface = nullptr;
-  SDL_Texture* text_texture = nullptr;
+  SDL_Color text_color = {255, 255, 255};
 
 } Debugger;
 
