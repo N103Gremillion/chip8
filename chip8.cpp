@@ -59,14 +59,20 @@ void run(Chip8& chip) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
         running = false;
+      } else if (event.type == SDL_KEYDOWN) {
+        SDL_Keycode key_pressed = event.key.keysym.sym;
+        handle_key_down(key_pressed);
+      } else if (event.type == SDL_KEYUP) {
+        SDL_Keycode key_pressed = event.key.keysym.sym;
+        handle_key_up(key_pressed);
       }
     }
 
     // show state before running an instrution
     render_debugger(chip.debugger, chip);
-    cout << "Press any key to run next instruction..." << endl;
-    cin.get(user_input);
-    
+    // cout << "Press any key to run next instruction..." << endl;
+    // cin.get(user_input);
+
     // execute an instruction
     u16 instruction = fetch_instruction(chip);
     perform_instruction(instruction, chip);

@@ -8,6 +8,7 @@
 #include "register.hpp"
 #include "screen.hpp"
 #include "debugger.hpp"
+#include "key_map.hpp"
 
 using namespace std;
 using u8 = std::uint8_t;

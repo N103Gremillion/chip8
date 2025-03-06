@@ -32,7 +32,7 @@ void draw_keys(Debugger& debugger) {
   debugger.key.x = 200;
   debugger.key.y = 0;
   SDL_Rect text_rect = {200, 0, debugger.key.w / 2, debugger.key.h / 2};
-  const char* keys[] = {"1", "2", "3", "4", "Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"};
+  string keys[] = {"1", "2", "3", "4", "Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"};
 
   for (int i = 0; i < debugger.num_of_keys; i++) {
     if (i % 4 == 0 && i != 0) {
@@ -44,7 +44,7 @@ void draw_keys(Debugger& debugger) {
       debugger.key.x += debugger.key.w;
       text_rect.x += debugger.key.w;
     }
-    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, keys[i], debugger.text_color);
+    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, keys[i].c_str(), debugger.text_color);
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface); 
     SDL_RenderDrawRect(debugger.render, &debugger.key);
     SDL_RenderCopy(debugger.render, text_texture, NULL, &text_rect);
