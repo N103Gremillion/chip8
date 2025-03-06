@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <string>
+#include "register.hpp"
 
 #define WHITE 255, 255, 255, 255
 #define BLACK 0, 0, 0, 0
@@ -13,15 +15,7 @@ using u16 = std::uint16_t;
 using u8 = std::uint8_t;
 using namespace std;
 
-struct Debugger;
-
-void fill_background(Debugger& debugger);
-void draw_instructions(Debugger& debugger);
-void draw_keys(Debugger& debugger);
-void draw_registers(Debugger& debugger);
-void setup_fonts(Debugger& debugger);
-void render_debugger(Debugger& debugger);
-void init_debugger(Debugger& debugger);
+struct Chip8;
 
 typedef struct Debugger{
 
@@ -52,5 +46,13 @@ typedef struct Debugger{
   SDL_Color text_color = {255, 255, 255};
 
 } Debugger;
+
+void fill_background(Debugger& debugger);
+void draw_instructions(Debugger& debugger, Chip8& chip);
+void draw_keys(Debugger& debugger);
+void draw_registers(Debugger& debugger, Registers* registers);
+void setup_fonts(Debugger& debugger);
+void render_debugger(Debugger& debugger, Chip8& chip);
+void init_debugger(Debugger& debugger, Chip8& chip);
 
 #endif

@@ -1,4 +1,5 @@
 #include "debugger.hpp"
+#include "chip8.hpp"
 #include <iostream>
 
 void fill_background(Debugger& debugger) {
@@ -7,18 +8,22 @@ void fill_background(Debugger& debugger) {
   SDL_SetRenderDrawColor(debugger.render, WHITE);
 }
 
-void draw_instructions(Debugger& debugger) {
+void draw_instructions(Debugger& debugger, Chip8& chip) {
   // reset location of instruction to correct starting value
   debugger.instruction.y = 0;
+  u16 pc = chip.regs->pc;
 
   for (int i = 0; i < debugger.num_of_instruction; i++) {
-    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, "instruction", debugger.text_color);
+    u16 instruction = (chip.ram[pc] << 8) | chip.ram[pc + 1];
+    string instruction_string = "Instruction: " + get_u16hex_string(instruction);
+    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, instruction_string.c_str(), debugger.text_color);
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface);
     SDL_RenderDrawRect(debugger.render, &debugger.instruction);
     SDL_RenderCopy(debugger.render, text_texture, NULL, &debugger.instruction);
     debugger.instruction.y += debugger.instruction.h;
     SDL_FreeSurface(text_surface);
     SDL_DestroyTexture(text_texture);
+    pc += 2;
   }
 }
 
@@ -48,7 +53,7 @@ void draw_keys(Debugger& debugger) {
   }
 }
 
-void draw_registers(Debugger& debugger) {
+void draw_registers(Debugger& debugger, Registers* registers) {
   debugger.u8_reg.x = 400;
   debugger.u8_reg.y = 0;
   // char* text = "V: E693";
@@ -60,39 +65,75 @@ void draw_registers(Debugger& debugger) {
     } else if (i != 0){
       debugger.u8_reg.x += debugger.u8_reg.w;
     }
+    string str = get_u8reg_string(i, *(registers));
+    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, str.c_str(), debugger.text_color);
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface); 
     SDL_RenderDrawRect(debugger.render, &debugger.u8_reg);
+    SDL_RenderCopy(debugger.render, text_texture, NULL, &debugger.u8_reg);
+    SDL_FreeSurface(text_surface);
+    SDL_DestroyTexture(text_texture);
   }
   // render the remaning specific registers
   SDL_Rect u16_reg = {debugger.u8_reg.x + debugger.u8_reg.w, debugger.u8_reg.y, debugger.u8_reg.w * 2, debugger.u8_reg.h};
 
   // pc register
+  string pc = "PC: " + get_u16hex_string(registers->pc);
+  SDL_Surface* pc_text = TTF_RenderText_Solid(debugger.font, pc.c_str(), debugger.text_color);
+  SDL_Texture* pc_texture = SDL_CreateTextureFromSurface(debugger.render, pc_text);
   SDL_RenderDrawRect(debugger.render, &u16_reg);
+  SDL_RenderCopy(debugger.render, pc_texture, NULL, &u16_reg);
+  SDL_FreeSurface(pc_text);
+  SDL_DestroyTexture(pc_texture);
 
   u16_reg.y += u16_reg.h;
 
   // sp register
+  string sp = "SP: " + get_u16hex_string(registers->sp);
+  SDL_Surface* sp_surface = TTF_RenderText_Solid(debugger.font, sp.c_str(), debugger.text_color);
+  SDL_Texture* sp_texture = SDL_CreateTextureFromSurface(debugger.render, sp_surface);
   SDL_RenderDrawRect(debugger.render, &u16_reg);
+  SDL_RenderCopy(debugger.render, sp_texture, NULL, &u16_reg);
+  SDL_FreeSurface(sp_surface);
+  SDL_DestroyTexture(sp_texture);
 
   u16_reg.y += u16_reg.h;
 
   // I register
+  string I = "I: " + get_u16hex_string(registers->I);
+  SDL_Surface* I_surface = TTF_RenderText_Solid(debugger.font, I.c_str(), debugger.text_color);
+  SDL_Texture* I_texture = SDL_CreateTextureFromSurface(debugger.render, I_surface);
   SDL_RenderDrawRect(debugger.render, &u16_reg);
+  SDL_RenderCopy(debugger.render, I_texture, NULL, &u16_reg);
+  SDL_FreeSurface(I_surface);
+  SDL_DestroyTexture(I_texture);
 
   // remaining special u8 registers
   // delay timer
+  string dt = "DT: " + get_u8hex_string(registers->delay_timer);
+  SDL_Surface* DT_surface = TTF_RenderText_Solid(debugger.font, dt.c_str(), debugger.text_color);
+  SDL_Texture* DT_texture = SDL_CreateTextureFromSurface(debugger.render, DT_surface);
   debugger.u8_reg.y += debugger.u8_reg.h;
   SDL_RenderDrawRect(debugger.render, &debugger.u8_reg);
+  SDL_RenderCopy(debugger.render, DT_texture, NULL, &debugger.u8_reg);
+  SDL_FreeSurface(DT_surface);
+  SDL_DestroyTexture(DT_texture);
 
   // sound timer
+  string st = "PC: " + get_u8hex_string(registers->sound_timer);
+  SDL_Surface* ST_surface = TTF_RenderText_Solid(debugger.font, st.c_str(), debugger.text_color);
+  SDL_Texture* ST_texture = SDL_CreateTextureFromSurface(debugger.render, ST_surface);
   debugger.u8_reg.y += debugger.u8_reg.h;
   SDL_RenderDrawRect(debugger.render, &debugger.u8_reg);
+  SDL_RenderCopy(debugger.render, ST_texture, NULL, &debugger.u8_reg);
+  SDL_FreeSurface(ST_surface);
+  SDL_DestroyTexture(ST_texture);
 }
 
 // draws current state of all components in debugger
-void render_debugger(Debugger& debugger) {
+void render_debugger(Debugger& debugger, Chip8& chip) {
   fill_background(debugger);
-  draw_registers(debugger);
-  draw_instructions(debugger);
+  draw_registers(debugger, chip.regs);
+  draw_instructions(debugger, chip);
   draw_keys(debugger);
   SDL_RenderPresent(debugger.render);
 }
@@ -101,7 +142,7 @@ void setup_fonts(Debugger& debugger) {
   debugger.font = TTF_OpenFont("./cascadia-code/Cascadia.ttf", 24);
 }
 
-void init_debugger(Debugger& debugger) {
+void init_debugger(Debugger& debugger, Chip8& chip) {
   // Initialize Font library
   TTF_Init();
   
@@ -112,5 +153,5 @@ void init_debugger(Debugger& debugger) {
   debugger.render = SDL_CreateRenderer(debugger.window, -1, SDL_RENDERER_ACCELERATED);
   
   setup_fonts(debugger);
-  render_debugger(debugger);  
+  render_debugger(debugger, chip);  
 }

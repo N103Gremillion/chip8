@@ -2,11 +2,24 @@
 #define REGISTER_HPP
 
 #include <cstdint>
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 using u8 = std::uint8_t;
 using u16 = std::uint16_t;
+using namespace std;
 
 const u16 ROM_START = 0x200; 
+
+struct Registers;
+
+void put_value_in_Vreg(int regNum, u8 value, Registers& registers);
+u8 get_value_in_Vreg(int regNum, Registers& registers);
+string get_u8reg_string(int reg_num, Registers& registers);
+string get_u8hex_string(u8 value);
+string get_u16hex_string(u16 value);
 
 struct Registers{
     // general registers

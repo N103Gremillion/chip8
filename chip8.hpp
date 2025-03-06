@@ -22,8 +22,6 @@ void load_rom(const string& fileName, Chip8& chip);
 void perform_instruction(u16 instruction, Chip8& chip);
 u16 fetch_instruction(Chip8& chip);
 void run(Chip8& chip);
-void put_value_in_Vreg(int regNum, u8 value, Chip8& chip);
-u8 get_value_in_Vreg(int regNum, Chip8& chip);
 int get_random_num(int min, int max);
 void free_chip(Chip8& chip);
 void printMemory(Chip8& chip);
@@ -50,7 +48,7 @@ typedef struct Chip8{
         regs = new Registers();
         stack = (u16*) malloc(sizeof(u16) * 16);
         init_screen(screen);
-        init_debugger(debugger);
+        init_debugger(debugger, *this);
     };
 
 }Chip8;

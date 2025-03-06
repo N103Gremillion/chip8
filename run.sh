@@ -1,2 +1,2 @@
-g++ -o out chip8.cpp main.cpp screen.cpp debugger.cpp -lSDL2 -lSDL2_ttf
+g++ -o out chip8.cpp main.cpp screen.cpp debugger.cpp register.cpp -lSDL2 -lSDL2_ttf
 ./out

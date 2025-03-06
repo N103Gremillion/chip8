@@ -52,6 +52,7 @@ void run(Chip8& chip) {
 
   bool running = true;
   SDL_Event event;
+  char user_input;
 
   while(running) {
     // Handle use input
@@ -60,13 +61,18 @@ void run(Chip8& chip) {
         running = false;
       }
     }
+
+    // show state before running an instrution
+    render_debugger(chip.debugger, chip);
+    cout << "Press any key to run next instruction..." << endl;
+    cin.get(user_input);
+    
     // execute an instruction
     u16 instruction = fetch_instruction(chip);
     perform_instruction(instruction, chip);
 
     // draw pixels / update screen
     update_screen(chip.screen);
-
   }
 }
 
@@ -76,121 +82,6 @@ int get_random_num(int min, int max) {
   uniform_int_distribution<int> dist(min, max);
 
   return dist(gen);
-}
-
-void put_value_in_Vreg(int regNum, u8 value, Chip8& chip) {
-    if (regNum > 15 || regNum < 0) {
-      return;
-    }
-    switch (regNum) {
-      case 0:
-        chip.regs->v0 = value;
-        break;
-      case 1:
-        chip.regs->v1 = value;
-        break;
-      case 2:
-        chip.regs->v2 = value;
-        break;
-      case 3:
-        chip.regs->v3 = value;
-        break;
-      case 4:
-        chip.regs->v4 = value;
-        break;
-      case 5:
-        chip.regs->v5 = value;
-        break;
-      case 6:
-        chip.regs->v6 = value;
-        break;
-      case 7:
-        chip.regs->v7 = value;
-        break;
-      case 8:
-        chip.regs->v8 = value;
-        break;
-      case 9:
-        chip.regs->v9 = value;
-        break;
-      case 10:
-        chip.regs->vA = value;
-        break;
-      case 11:
-        chip.regs->vB = value;
-        break;
-      case 12:
-        chip.regs->vC = value;
-        break;
-      case 13:
-        chip.regs->vD = value;
-        break;
-      case 14:
-        chip.regs->vE = value;
-        break;
-      case 15:  
-        chip.regs->vF = value;
-        break;
-    }
-}
-
-u8 get_value_in_Vreg(int regNum, Chip8& chip) {
-  if (regNum < 0 || regNum > 15) {
-    return -1;
-  }
-  switch (regNum) {
-      case 0:
-        return chip.regs->v0;
-        break;
-      case 1:
-        return chip.regs->v1;
-        break;
-      case 2:
-        return chip.regs->v2;
-        break;
-      case 3:
-        return chip.regs->v3;
-        break;
-      case 4:
-        return chip.regs->v4;
-        break;
-      case 5:
-        return chip.regs->v5;
-        break;
-      case 6:
-        return chip.regs->v6;
-        break;
-      case 7:
-        return chip.regs->v7;
-        break;
-      case 8:
-        return chip.regs->v8;
-        break;
-      case 9:
-        return chip.regs->v9;
-        break;
-      case 10:
-        return chip.regs->vA;
-        break;
-      case 11:
-        return chip.regs->vB;
-        break;
-      case 12:
-        return chip.regs->vC;
-        break;
-      case 13:
-        return chip.regs->vD;
-        break;
-      case 14:
-        return chip.regs->vE;
-        break;
-      case 15:  
-        return chip.regs->vF;
-        break;
-      default:
-        return -1;
-        break;
-  }
 }
 
 u16 fetch_instruction(Chip8& chip) {
@@ -261,7 +152,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     case 0x3: {
       u8 kk = (instruction & 0xFF);
       int reg_num = (int) ((instruction >> 8) & 0xF);
-      if (kk == get_value_in_Vreg(reg_num, chip)) {
+      if (kk == get_value_in_Vreg(reg_num, *(chip.regs))) {
         chip.regs->pc += 2;
       }
       break;
@@ -271,7 +162,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     case 0x4: {
       u8 kk = (instruction & 0xFF);
       int reg_num = (int) ((instruction >> 8) & 0xF);
-      if (kk != get_value_in_Vreg(reg_num, chip)) {
+      if (kk != get_value_in_Vreg(reg_num, *(chip.regs))) {
         chip.regs->pc += 2;
       }
       break;
@@ -281,7 +172,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     case 0x5: {
       int x_reg_num = ((instruction >> 8) & 0xF);
       int y_reg_num = ((instruction >> 4) & 0xF);
-      if (get_value_in_Vreg(x_reg_num, chip) == get_value_in_Vreg(y_reg_num, chip)) {
+      if (get_value_in_Vreg(x_reg_num, *(chip.regs)) == get_value_in_Vreg(y_reg_num, *(chip.regs))) {
         chip.regs->pc += 2;
       }
       printf("check skip \n");
@@ -292,7 +183,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     case 0x6: {
       u8 kk = (instruction & 0xFF);
       int x = (int) ((instruction >> 8) & 0xF);
-      put_value_in_Vreg(x, kk, chip);
+      put_value_in_Vreg(x, kk, *(chip.regs));
       break;
     }
 
@@ -300,8 +191,8 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     case 0x7: {
       u8 kk = (instruction & 0xFF);
       int x_reg_num = ((instruction >> 8) & 0xF);
-      u8 new_reg_val = get_value_in_Vreg(x_reg_num, chip) + kk;
-      put_value_in_Vreg(x_reg_num, new_reg_val, chip);
+      u8 new_reg_val = get_value_in_Vreg(x_reg_num, *(chip.regs)) + kk;
+      put_value_in_Vreg(x_reg_num, new_reg_val, *(chip.regs));
       break;
     }
 
@@ -309,29 +200,29 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       u8 finalNib = (instruction & 0xF);
       int x_reg_num = ((instruction >> 8) & 0xF);
       int y_reg_num = ((instruction >> 4) & 0xF);
-      u8 Vy = get_value_in_Vreg(y_reg_num, chip);
-      u8 Vx = get_value_in_Vreg(x_reg_num, chip);
+      u8 Vy = get_value_in_Vreg(y_reg_num, *(chip.regs));
+      u8 Vx = get_value_in_Vreg(x_reg_num, *(chip.regs));
 
       switch (finalNib) {
         
         // store value in Vy in Vx register
         case 0x0:
-          put_value_in_Vreg(x_reg_num, Vy, chip);
+          put_value_in_Vreg(x_reg_num, Vy, *(chip.regs));
           break;
 
         // performs bitwise OR on the values of Vx and Vy, and stores the result in Vx   
         case 0x1: 
-          put_value_in_Vreg(x_reg_num, (Vx | Vy), chip);
+          put_value_in_Vreg(x_reg_num, (Vx | Vy), *(chip.regs));
           break;
 
         // performs bitwise AND on values in Vx and Vy and stores in Vx
         case 0x2:
-          put_value_in_Vreg(x_reg_num, (Vx & Vy), chip);
+          put_value_in_Vreg(x_reg_num, (Vx & Vy), *(chip.regs));
           break;
 
         // performs bitwise exclusive OR on values in Vx and Vy and stores in Vx
         case 0x3:
-          put_value_in_Vreg(x_reg_num, (Vx ^ Vy), chip);
+          put_value_in_Vreg(x_reg_num, (Vx ^ Vy), *(chip.regs));
           break;
 
         // ADD Vx and Vy values; if result > 8 bits, VF is set to 1, else 0
@@ -339,40 +230,40 @@ void perform_instruction(u16 instruction, Chip8& chip) {
           u16 sum = (u16)Vx +(u16)Vy;
           u8 result = (u8)sum;
           u8 carry = (sum > 255) ? 1 : 0;
-          put_value_in_Vreg(x_reg_num, result, chip);
-          put_value_in_Vreg(0xF, carry, chip);
+          put_value_in_Vreg(x_reg_num, result, *(chip.regs));
+          put_value_in_Vreg(0xF, carry, *(chip.regs));
           break;
         }
 
         // if Vx > Vy, VF is set to 1, else 0
         case 0x5: {
           u8 carry = (Vx > Vy) ? 1 : 0;
-          put_value_in_Vreg(x_reg_num, (Vx - Vy), chip);
-          put_value_in_Vreg(0xF, carry, chip);
+          put_value_in_Vreg(x_reg_num, (Vx - Vy), *(chip.regs));
+          put_value_in_Vreg(0xF, carry, *(chip.regs));
           break;
         }
 
         // if LSB of Vx is 1, then VF is set to 1, else 0. Then Vx is divided by 2
         case 0x6: {
           u8 lsb = (Vx & 0x1);
-          put_value_in_Vreg(0xF, lsb, chip);
-          put_value_in_Vreg(x_reg_num, (Vx >> 1), chip);
+          put_value_in_Vreg(0xF, lsb, *(chip.regs));
+          put_value_in_Vreg(x_reg_num, (Vx >> 1), *(chip.regs));
           break;
         }
 
         // if Vy > Vx, VF is set to 1, else 0. Then Vx is subtracted from Vy
         case 0x7: {
           u8 carry = (Vy > Vx) ? 1 : 0;
-          put_value_in_Vreg(x_reg_num, (Vy - Vx), chip);
-          put_value_in_Vreg(0xF, carry, chip);
+          put_value_in_Vreg(x_reg_num, (Vy - Vx), *(chip.regs));
+          put_value_in_Vreg(0xF, carry, *(chip.regs));
           break;
         }
 
         // if MSB of Vx is 1, VF is set to 1, else 0. Then Vx is multiplied by 2
         case 0xE: {
           u8 msb = (Vx >> 7);
-          put_value_in_Vreg(x_reg_num, (Vx << 1), chip);
-          put_value_in_Vreg(0xF, msb, chip);
+          put_value_in_Vreg(x_reg_num, (Vx << 1), *(chip.regs));
+          put_value_in_Vreg(0xF, msb, *(chip.regs));
           break;
         }
       }
@@ -383,7 +274,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     case 0x9:{
       u8 x_reg_num = (instruction >> 8) & 0xF;
       u8 y_reg_num = (instruction >> 4) & 0xF;
-      if (get_value_in_Vreg(x_reg_num, chip) != get_value_in_Vreg(y_reg_num, chip)){
+      if (get_value_in_Vreg(x_reg_num, *(chip.regs)) != get_value_in_Vreg(y_reg_num, *(chip.regs))){
         chip.regs->pc += 2;
       }
       break;
@@ -399,7 +290,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
     // Jump to location nnn + V0
     case 0xB:{
       u16 nnn = (instruction & 0xFFF);
-      chip.regs->pc = (nnn + get_value_in_Vreg(0, chip));
+      chip.regs->pc = (nnn + get_value_in_Vreg(0, *(chip.regs)));
       break;
     }
 
@@ -408,7 +299,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       u8 kk = (instruction & 0xFF);
       u8 x_reg_num = ((instruction >> 8) & 0xF);
       u8 random_byte = get_random_num(0, 255);
-      put_value_in_Vreg(x_reg_num, (kk & random_byte), chip);
+      put_value_in_Vreg(x_reg_num, (kk & random_byte), *(chip.regs));
       break;
     }
 
@@ -417,17 +308,17 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       int x_reg_num = (int) ((instruction >> 8) & 0xF);
       int y_reg_num = (int) ((instruction >> 4) & 0xF);
       int n = (int) (instruction & 0xF);
-      int x = get_value_in_Vreg(x_reg_num, chip) & 63; // % 64 helps it wrap 
-      int y = get_value_in_Vreg(y_reg_num, chip) & 31; // %32 helps it wrap
+      int x = get_value_in_Vreg(x_reg_num, *(chip.regs)) & 63; // % 64 helps it wrap 
+      int y = get_value_in_Vreg(y_reg_num, *(chip.regs)) & 31; // %32 helps it wrap
       u16 memory_location = chip.regs->I;
 
-      put_value_in_Vreg(15, 0x00, chip);
+      put_value_in_Vreg(15, 0x00, *(chip.regs));
 
       while (n > 0) {
         u8 cur_byte = chip.ram[memory_location];
         bool set_Vf_to_1 = draw_pixel_row(x, y, chip.screen, cur_byte);
         if (set_Vf_to_1) {
-          put_value_in_Vreg(15, 1, chip); // if collision occurs set VF to 1
+          put_value_in_Vreg(15, 1, *(chip.regs)); // if collision occurs set VF to 1
         }
         // Update coordinates for the next row of pixels
         y++;
