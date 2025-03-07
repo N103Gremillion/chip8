@@ -44,7 +44,12 @@ void draw_keys(Debugger& debugger) {
       debugger.key.x += debugger.key.w;
       text_rect.x += debugger.key.w;
     }
-    SDL_Surface* text_surface = TTF_RenderText_Solid(debugger.font, keys[i].c_str(), debugger.text_color);
+    SDL_Surface* text_surface;
+    if (key_state[keys[i]]){
+      text_surface = TTF_RenderText_Solid(debugger.font, keys[i].c_str(), GREEN);
+    }else {
+      text_surface = TTF_RenderText_Solid(debugger.font, keys[i].c_str(), debugger.text_color);
+    }
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface); 
     SDL_RenderDrawRect(debugger.render, &debugger.key);
     SDL_RenderCopy(debugger.render, text_texture, NULL, &text_rect);
