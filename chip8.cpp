@@ -340,14 +340,26 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
     case 0xE: {
       u8 last8 = (instruction & 0xFF);
+      int x_reg_num = ((instruction >> 8) & 0xF);
+      u8 Vx = get_value_in_Vreg(x_reg_num, *(chip.regs));
+      string key = get_key_from_u8(Vx);
+
       switch (last8) {
         // skip next instruction if key with value of Vx is pressed
-        case 0x9E:
-          printf("check keyboard and if key is pressed that is in Vx skip next instruction \n");
+        case 0x9E: {
+          if (key_state[key]) {
+            chip.regs->pc += 2;
+          }
           break;
+        }
          // skip next instruction if key with value of Vx is not pressed
-        case 0xA1:
-          printf("checks keyboard and if key is not pressed that is in Vx skip next instruction \n");
+        case 0xA1: {
+          if (!key_state[key]) {
+            chip.regs->pc += 2;
+          }
+          break;
+        }
+        default:
           break;
       }
       break;

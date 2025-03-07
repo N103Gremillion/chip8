@@ -126,3 +126,25 @@ void handle_key_up(SDL_Keycode key_pressed) {
       break;
   }
 }
+
+string get_key_from_u8(u8 value) {
+  switch (value) {
+      case 0x1: return "1";
+      case 0x2: return "2";
+      case 0x3: return "3";
+      case 0xC: return "4";
+      case 0x4: return "Q";
+      case 0x5: return "W";
+      case 0x6: return "E";
+      case 0xD: return "R";
+      case 0x7: return "A";
+      case 0x8: return "S";
+      case 0x9: return "D";
+      case 0xE: return "F";
+      case 0xA: return "Z";
+      case 0x0: return "X";
+      case 0xB: return "C";
+      case 0xF: return "V";
+      default: return "Unknown";
+  }
+}
