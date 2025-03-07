@@ -367,31 +367,75 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
     case 0xF: {
       u8 last8 = (instruction & 0xFF);
+      int x_reg_num = ((instruction >> 8) & 0XF);
+      u8 Vx = get_value_in_Vreg(x_reg_num, *(chip.regs));
+
       switch (last8) {
+        
+        // set Vx = delay_timer value
         case 0x07:
-          // set Vx = delay_timer value
-          printf("Vx = delay_timer\n");
+          put_value_in_Vreg(x_reg_num, chip.regs->delay_timer, *(chip.regs));
           break;
-        case 0x0A:
-          // Wait for key press, store value in Vx
-          printf("wait for key press and store in Vx \n");
+
+        // Wait for key press, store value in Vx
+        case 0x0A: 
+          if (key_state["1"]){
+            put_value_in_Vreg(x_reg_num, 1, *(chip.regs));
+          } else if (key_state["2"]) {
+            put_value_in_Vreg(x_reg_num, 2, *(chip.regs));
+          } else if (key_state["3"]) {
+            put_value_in_Vreg(x_reg_num, 3, *(chip.regs));
+          } else if (key_state["Q"]){
+            put_value_in_Vreg(x_reg_num, 4, *(chip.regs));
+          } else if (key_state["W"]){
+            put_value_in_Vreg(x_reg_num, 5, *(chip.regs));
+          } else if (key_state["E"]){
+            put_value_in_Vreg(x_reg_num, 6, *(chip.regs));
+          } else if (key_state["A"]){
+            put_value_in_Vreg(x_reg_num, 7, *(chip.regs));
+          } else if (key_state["S"]){
+            put_value_in_Vreg(x_reg_num, 8, *(chip.regs));
+          } else if (key_state["D"]){
+            put_value_in_Vreg(x_reg_num, 9, *(chip.regs));
+          } else if (key_state["Z"]){
+            put_value_in_Vreg(x_reg_num, 10, *(chip.regs));
+          } else if (key_state["X"]){
+            put_value_in_Vreg(x_reg_num, 0, *(chip.regs));
+          } else if (key_state["C"]){
+            put_value_in_Vreg(x_reg_num, 11, *(chip.regs));
+          } else if (key_state["4"]){
+            put_value_in_Vreg(x_reg_num, 12, *(chip.regs));
+          } else if (key_state["R"]){
+            put_value_in_Vreg(x_reg_num, 13, *(chip.regs));
+          } else if (key_state["F"]){
+            put_value_in_Vreg(x_reg_num, 14, *(chip.regs));
+          } else if (key_state["V"]){
+            put_value_in_Vreg(x_reg_num, 15, *(chip.regs));
+          } else {
+            chip.regs->pc -= 2;
+          }
           break;
-        case 0x15:
-          // set delay timer to Vx
-          printf("delay_timer = Vx \n");
+
+        // set delay timer to Vx
+        case 0x15: 
+          chip.regs->delay_timer = Vx;
           break;
-        case 0x18:
-          // set sound timer = Vx
-          printf("sound_timer = Vx \n");
+
+        // set sound timer to Vx
+        case 0x18: 
+          chip.regs->sound_timer = Vx;
           break;
+
+        // set I = I + Vx
         case 0x1E:
-          // set I = I + Vx
-          printf("I = I + Vx \n");
+          chip.regs->I = (chip.regs->I + Vx);
           break;
+
+        // value of I is set to location of the hex sprite corresponding to the value of Vx
         case 0x29:
-          // value of I is set to location of the hex sprite corresponding to the value of Vx
           printf("I set to sprite hex in Vx \n");
           break;
+
         case 0x33:
           // take decimal value of Vx, place hundreds, tens, and ones digit in memory at I, I+1, I+2
           printf("Some decimal val in Vx are placed in I register locations\n");
