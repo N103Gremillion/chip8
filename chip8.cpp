@@ -367,7 +367,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
     case 0xF: {
       u8 last8 = (instruction & 0xFF);
-      int x_reg_num = ((instruction >> 8) & 0XF);
+      int x_reg_num = (instruction >> 8) & 0XF;
       u8 Vx = get_value_in_Vreg(x_reg_num, *(chip.regs));
 
       switch (last8) {
@@ -432,21 +432,31 @@ void perform_instruction(u16 instruction, Chip8& chip) {
           break;
 
         // value of I is set to location of the hex sprite corresponding to the value of Vx
-        case 0x29:
-          printf("I set to sprite hex in Vx \n");
+        case 0x29: {
+          chip.regs->I = 0x050 + (Vx * 5);
           break;
+        }
 
         case 0x33:
           // take decimal value of Vx, place hundreds, tens, and ones digit in memory at I, I+1, I+2
-          printf("Some decimal val in Vx are placed in I register locations\n");
+          chip.ram[chip.regs->I] = Vx / 100;
+          chip.ram[chip.regs->I + 1] = (Vx % 100) / 10;
+          chip.ram[chip.regs->I + 2] = Vx % 10;
           break;
-        case 0x55:
+
+        case 0x55: {
           // copies values of V0 through Vx into memory, starting at the address in I
-          printf("value of V0 is copied into memory through Vx starting at the address in I \n");
+          for (int i = 0; i <= x_reg_num; i++) {
+            chip.ram[chip.regs->I + i] = get_value_in_Vreg(i, *(chip.regs));
+          }
           break;
+        }
+
         case 0x65:
           // read values from memory starting at I into registers V0 through Vx
-          printf("copy values from memory starting at location I into V0 through Vx\n");
+          for (int i = 0; i <= x_reg_num; i++) {
+            put_value_in_Vreg(i, chip.ram[chip.regs->I + i], *(chip.regs));
+          }
           break;
         }
       }
