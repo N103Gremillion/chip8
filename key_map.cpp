@@ -19,113 +19,36 @@ map<string, bool> key_state = {
   {"V", false}
 };
 
-void handle_key_down(SDL_Keycode key_pressed) {
-  // only handle presses to valid keys 
+void handle_key_change(SDL_Keycode key_pressed, bool state) {
   switch (key_pressed) {
-    case SDLK_1:
-      key_state["1"] = true;
-      break;
-    case SDLK_2:
-      key_state["2"] = true;
-      break;
-    case SDLK_3:
-      key_state["3"] = true;
-      break;
-    case SDLK_4:
-      key_state["4"] = true;
-      break;
-    case SDLK_q:
-      key_state["Q"] = true;
-      break;
-    case SDLK_w:
-      key_state["W"] = true;
-      break;
-    case SDLK_e:
-      key_state["E"] = true;
-      break;
-    case SDLK_r:
-      key_state["R"] = true;
-      break;
-    case SDLK_a:
-      key_state["A"] = true;
-      break;
-    case SDLK_s:
-      key_state["S"] = true;
-      break;
-    case SDLK_d:
-      key_state["D"] = true;
-      break;
-    case SDLK_f:
-      key_state["F"] = true;
-      break;
-    case SDLK_z:
-      key_state["Z"] = true;
-      break;
-    case SDLK_x:
-      key_state["X"] = true;
-      break;
-    case SDLK_c:
-      key_state["C"] = true;
-      break;
-    case SDLK_v:
-      key_state["V"] = true;
-      break;
-  } 
+    case SDLK_1: key_state["1"] = state; break;
+    case SDLK_2: key_state["2"] = state; break;
+    case SDLK_3: key_state["3"] = state; break;
+    case SDLK_4: key_state["4"] = state; break;
+    case SDLK_q: key_state["Q"] = state; break;
+    case SDLK_w: key_state["W"] = state; break;
+    case SDLK_e: key_state["E"] = state; break;
+    case SDLK_r: key_state["R"] = state; break;
+    case SDLK_a: key_state["A"] = state; break;
+    case SDLK_s: key_state["S"] = state; break;
+    case SDLK_d: key_state["D"] = state; break;
+    case SDLK_f: key_state["F"] = state; break;
+    case SDLK_z: key_state["Z"] = state; break;
+    case SDLK_x: key_state["X"] = state; break;
+    case SDLK_c: key_state["C"] = state; break;
+    case SDLK_v: key_state["V"] = state; break;
+    default: break;
+  }
+}
+
+void handle_key_down(SDL_Keycode key_pressed) {
+  handle_key_change(key_pressed, true);
 }
 
 void handle_key_up(SDL_Keycode key_pressed) {
-  // only handle presses to valid keys
-  switch (key_pressed) {
-    case SDLK_1:
-      key_state["1"] = false;
-      break;
-    case SDLK_2:
-      key_state["2"] = false;
-      break;
-    case SDLK_3:
-      key_state["3"] = false;
-      break;
-    case SDLK_4:
-      key_state["4"] = false;
-      break;
-    case SDLK_q:
-      key_state["Q"] = false;
-      break;
-    case SDLK_w:
-      key_state["W"] = false;
-      break;
-    case SDLK_e:
-      key_state["E"] = false;
-      break;
-    case SDLK_r:
-      key_state["R"] = false;
-      break;
-    case SDLK_a:
-      key_state["A"] = false;
-      break;
-    case SDLK_s:
-      key_state["S"] = false;
-      break;
-    case SDLK_d:
-      key_state["D"] = false;
-      break;
-    case SDLK_f:
-      key_state["F"] = false;
-      break;
-    case SDLK_z:
-      key_state["Z"] = false;
-      break;
-    case SDLK_x:
-      key_state["X"] = false;
-      break;
-    case SDLK_c:
-      key_state["C"] = false;
-      break;
-    case SDLK_v:
-      key_state["V"] = false;
-      break;
-  }
+  handle_key_change(key_pressed, false);
 }
+
 
 string get_key_from_u8(u8 value) {
   switch (value) {
@@ -146,5 +69,12 @@ string get_key_from_u8(u8 value) {
       case 0xB: return "C";
       case 0xF: return "V";
       default: return "Unknown";
+  }
+}
+
+void print_key_state() {
+  // Printing key-value pairs
+  for (const auto& pair : key_state) {
+      std::cout << "Key: " << pair.first << ", Value: " << std::boolalpha << pair.second << '\n';
   }
 }

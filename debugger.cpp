@@ -2,10 +2,14 @@
 #include "chip8.hpp"
 #include <iostream>
 
+
+#define FONT_WHITE 255, 255, 255, 255
+#define FONT_BLACK 0, 0, 0, 0
+
 void fill_background(Debugger& debugger) {
-  SDL_SetRenderDrawColor(debugger.render, BLACK);
+  SDL_SetRenderDrawColor(debugger.render, FONT_BLACK);
   SDL_RenderClear(debugger.render);
-  SDL_SetRenderDrawColor(debugger.render, WHITE);
+  SDL_SetRenderDrawColor(debugger.render, FONT_WHITE);
 }
 
 void draw_instructions(Debugger& debugger, Chip8& chip) {
@@ -32,7 +36,6 @@ void draw_keys(Debugger& debugger) {
   debugger.key.x = 200;
   debugger.key.y = 0;
   SDL_Rect text_rect = {200, 0, debugger.key.w / 2, debugger.key.h / 2};
-  string keys[] = {"1", "2", "3", "4", "Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"};
 
   for (int i = 0; i < debugger.num_of_keys; i++) {
     if (i % 4 == 0 && i != 0) {
@@ -45,10 +48,11 @@ void draw_keys(Debugger& debugger) {
       text_rect.x += debugger.key.w;
     }
     SDL_Surface* text_surface;
-    if (key_state[keys[i]]){
-      text_surface = TTF_RenderText_Solid(debugger.font, keys[i].c_str(), GREEN);
+    string key = debugger.keys[i];
+    if (key_state[key]){
+      text_surface = TTF_RenderText_Solid(debugger.font, key.c_str(), debugger.green);
     }else {
-      text_surface = TTF_RenderText_Solid(debugger.font, keys[i].c_str(), debugger.text_color);
+      text_surface = TTF_RenderText_Solid(debugger.font, key.c_str(), debugger.text_color);
     }
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(debugger.render, text_surface); 
     SDL_RenderDrawRect(debugger.render, &debugger.key);
@@ -156,7 +160,6 @@ void init_debugger(Debugger& debugger, Chip8& chip) {
 
   // Create the SDL renderer
   debugger.render = SDL_CreateRenderer(debugger.window, -1, SDL_RENDERER_ACCELERATED);
-  
   setup_fonts(debugger);
   render_debugger(debugger, chip);  
 }

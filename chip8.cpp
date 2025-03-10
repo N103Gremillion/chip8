@@ -51,7 +51,7 @@ void printStack(Chip8& chip) {
 }
 
 // MAIN FUNCTIONS
-void run(Chip8& chip) {
+void run(Chip8& chip, bool debug_mode) {
   SDL_Init(SDL_INIT_TIMER);
   
   Uint32 lastCycleTime = SDL_GetTicks();  
@@ -83,21 +83,26 @@ void run(Chip8& chip) {
     }
 
     // show state before running an instrution
-    render_debugger(chip.debugger, chip);
-    // cout << "Press any key to run next instruction..." << endl;
-    // cin.get(user_input);
+    
+    //cout << "Press any key to run next instruction..." << endl;
+    //cin.get(user_input);
 
     if (cur_time - lastCycleTime >= cycleDelay) {
       // execute an instruction
+      // cout << "trying to perform next instruction" << endl;
       u16 instruction = fetch_instruction(chip);
       perform_instruction(instruction, chip);
       lastCycleTime = SDL_GetTicks();
+      if (debug_mode) {      
+        render_debugger(chip.debugger, chip);
+      }
     }
 
     // draw pixels / update screen at 60 FPS
     if (cur_time - lastRenderUpdate >= renderDelay) {
       update_screen(chip.screen);
       lastRenderUpdate = SDL_GetTicks();
+      // cout << "Cycle ended" << endl;
     }
 
     SDL_Delay(1);
@@ -116,7 +121,6 @@ u16 fetch_instruction(Chip8& chip) {
   u16 pc = chip.regs->pc;
   u16 instruction = (chip.ram[pc] << 8) | chip.ram[pc + 1];
   chip.regs->pc+=2;
-
 	// if (chip.regs->delay_timer > 0)
 	// {
 	// 	--chip.regs->delay_timer;
@@ -149,6 +153,7 @@ void free_chip(Chip8& chip) {
 void perform_instruction(u16 instruction, Chip8& chip) {
   // niblets = (4 bits)
   u8 opcode = instruction >> 12; // defines the type of instruction
+  printHex(instruction);
 
   switch (opcode) {
 
@@ -164,24 +169,23 @@ void perform_instruction(u16 instruction, Chip8& chip) {
         case 0x00EE:
           chip.regs->sp--;
           chip.regs->pc = chip.stack[chip.regs->sp];
-          // chip.stack[chip.regs->sp] = chip.regs->pc;
           break;
       }
-
+      break;
     // jump to the nnn register
     case 0x1: {
-      u16 nnn = (instruction & 0xFFF);
+      u16 nnn = (instruction & 0x0FFFu);
       chip.regs->pc = nnn;
       break;
     }
 
     // call instruction
     case 0x2: {
-      if (chip.regs->sp >= 16 - 1) {
+      if (chip.regs->sp >= 15) {
         std::cerr<<"Stack overflow"<<std::endl;
       } else {
-        chip.regs->sp++;
         chip.stack[chip.regs->sp] = chip.regs->pc;
+        ++chip.regs->sp;
         chip.regs->pc = (instruction & 0xFFF);
       }
       break;
@@ -214,7 +218,6 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       if (get_value_in_Vreg(x_reg_num, *(chip.regs)) == get_value_in_Vreg(y_reg_num, *(chip.regs))) {
         chip.regs->pc += 2;
       }
-      printf("check skip \n");
       break;
     }
 
@@ -269,16 +272,16 @@ void perform_instruction(u16 instruction, Chip8& chip) {
           u16 sum = (u16)Vx +(u16)Vy;
           u8 result = (u8)sum;
           u8 carry = (sum > 255) ? 1 : 0;
-          put_value_in_Vreg(x_reg_num, result, *(chip.regs));
           put_value_in_Vreg(0xF, carry, *(chip.regs));
+          put_value_in_Vreg(x_reg_num, result, *(chip.regs));
           break;
         }
 
         // if Vx > Vy, VF is set to 1, else 0
         case 0x5: {
           u8 carry = (Vx > Vy) ? 1 : 0;
-          put_value_in_Vreg(x_reg_num, (Vx - Vy), *(chip.regs));
           put_value_in_Vreg(0xF, carry, *(chip.regs));
+          put_value_in_Vreg(x_reg_num, (Vx - Vy), *(chip.regs));
           break;
         }
 
@@ -293,21 +296,21 @@ void perform_instruction(u16 instruction, Chip8& chip) {
         // if Vy > Vx, VF is set to 1, else 0. Then Vx is subtracted from Vy
         case 0x7: {
           u8 carry = (Vy > Vx) ? 1 : 0;
-          put_value_in_Vreg(x_reg_num, (Vy - Vx), *(chip.regs));
           put_value_in_Vreg(0xF, carry, *(chip.regs));
+          put_value_in_Vreg(x_reg_num, (Vy - Vx), *(chip.regs));
           break;
         }
 
         // if MSB of Vx is 1, VF is set to 1, else 0. Then Vx is multiplied by 2
         case 0xE: {
           u8 msb = (Vx >> 7);
-          put_value_in_Vreg(x_reg_num, (Vx << 1), *(chip.regs));
           put_value_in_Vreg(0xF, msb, *(chip.regs));
+          put_value_in_Vreg(x_reg_num, (Vx << 1), *(chip.regs));
           break;
         }
       }
-    }
       break;
+    }
 
     // skip next instruction if Vx != Vy
     case 0x9:{
@@ -461,7 +464,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
         // set I = I + Vx
         case 0x1E:
-          chip.regs->I = (chip.regs->I + Vx);
+          chip.regs->I = (chip.regs->I + (u16)Vx);
           break;
 
         // value of I is set to location of the hex sprite corresponding to the value of Vx
@@ -472,14 +475,16 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
         case 0x33:
           // take decimal value of Vx, place hundreds, tens, and ones digit in memory at I, I+1, I+2
-          chip.ram[chip.regs->I] = Vx / 100;
-          chip.ram[chip.regs->I + 1] = (Vx % 100) / 10;
           chip.ram[chip.regs->I + 2] = Vx % 10;
+          Vx /= 10;
+          chip.ram[chip.regs->I + 1] = Vx % 10;
+          Vx /= 10;
+          chip.ram[chip.regs->I] = Vx % 10;
           break;
 
         case 0x55: {
           // copies values of V0 through Vx into memory, starting at the address in I
-          for (int i = 0; i <= x_reg_num; i++) {
+          for (int i = 0; i <= x_reg_num; ++i) {
             chip.ram[chip.regs->I + i] = get_value_in_Vreg(i, *(chip.regs));
           }
           break;
@@ -487,11 +492,12 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
         case 0x65:
           // read values from memory starting at I into registers V0 through Vx
-          for (int i = 0; i <= x_reg_num; i++) {
+          for (int i = 0; i <= x_reg_num; ++i) {
             put_value_in_Vreg(i, chip.ram[chip.regs->I + i], *(chip.regs));
           }
           break;
         }
+        break;
       }
     break;
   }

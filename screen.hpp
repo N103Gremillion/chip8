@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
-#define WHITE 255, 255, 255, 255
-#define BLACK 0, 0, 0, 0
+#define WHITE 0xFFFFFFFF
+#define BLACK 0x00000000
 #define TOTAL_PIXELS (64 * 32)
 #define PIXELS_PER_ROW 64
 #define PIXELS_PER_COLUMN 32

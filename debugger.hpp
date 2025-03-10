@@ -8,10 +8,6 @@
 #include <string>
 #include "register.hpp"
 
-#define WHITE 255, 255, 255, 255
-#define GREEN {0, 255, 0}
-#define BLACK 0, 0, 0, 0
-
 using u16 = std::uint16_t;
 using u8 = std::uint8_t;
 using namespace std;
@@ -32,6 +28,7 @@ typedef struct Debugger{
   // for the keys middle part
   SDL_Rect key = {200, 0, 50, 50}; // x=200, y=0, w=50, h=50
   int num_of_keys = 16;
+  array<string, 16> keys;
   
   // for the registers right side
   // SDL_Rect register = {};
@@ -45,6 +42,11 @@ typedef struct Debugger{
 
   TTF_Font* font = nullptr;
   SDL_Color text_color = {255, 255, 255};
+  SDL_Color green = {0, 255, 0};
+
+  Debugger() {
+    keys = {"1", "2", "3", "4", "Q", "W", "E", "R", "A", "S", "D", "F", "Z", "X", "C", "V"};
+  }
 
 } Debugger;
 

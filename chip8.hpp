@@ -23,7 +23,7 @@ struct Chip8;
 void load_rom(const string& fileName, Chip8& chip);
 void perform_instruction(u16 instruction, Chip8& chip);
 u16 fetch_instruction(Chip8& chip);
-void run(Chip8& chip);
+void run(Chip8& chip, bool debug);
 int get_random_num(int min, int max);
 void free_chip(Chip8& chip);
 void printMemory(Chip8& chip);
