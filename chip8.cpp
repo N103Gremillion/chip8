@@ -1,7 +1,10 @@
 #include "chip8.hpp"
 #include <fstream>
 #include <vector>
+#include <unistd.h>
 
+#define INSTRUCTION_PER_SECOND 500
+#define RENDER_RATE 60
 
 void load_rom(const std::string& fileName, Chip8& chip) {
   // Open file in binary mode
@@ -49,12 +52,23 @@ void printStack(Chip8& chip) {
 
 // MAIN FUNCTIONS
 void run(Chip8& chip) {
+  SDL_Init(SDL_INIT_TIMER);
+  
+  Uint32 lastCycleTime = SDL_GetTicks();  
+  Uint32 lastRenderUpdate = SDL_GetTicks(); 
+  const int cycleDelay = 1000 / INSTRUCTION_PER_SECOND; // Delay between each instruction (~2ms)
+  const int renderDelay = 1000 / RENDER_RATE;       // Delay between each render (~16ms)
 
   bool running = true;
   SDL_Event event;
   char user_input;
+  int count = 0;
+  const int target_display_fps = 60;
 
   while(running) {
+
+    Uint32 cur_time = SDL_GetTicks();
+
     // Handle use input
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
@@ -73,12 +87,20 @@ void run(Chip8& chip) {
     // cout << "Press any key to run next instruction..." << endl;
     // cin.get(user_input);
 
-    // execute an instruction
-    u16 instruction = fetch_instruction(chip);
-    perform_instruction(instruction, chip);
+    if (cur_time - lastCycleTime >= cycleDelay) {
+      // execute an instruction
+      u16 instruction = fetch_instruction(chip);
+      perform_instruction(instruction, chip);
+      lastCycleTime = SDL_GetTicks();
+    }
 
-    // draw pixels / update screen
-    update_screen(chip.screen);
+    // draw pixels / update screen at 60 FPS
+    if (cur_time - lastRenderUpdate >= renderDelay) {
+      update_screen(chip.screen);
+      lastRenderUpdate = SDL_GetTicks();
+    }
+
+    SDL_Delay(1);
   }
 }
 
@@ -94,6 +116,17 @@ u16 fetch_instruction(Chip8& chip) {
   u16 pc = chip.regs->pc;
   u16 instruction = (chip.ram[pc] << 8) | chip.ram[pc + 1];
   chip.regs->pc+=2;
+
+	// if (chip.regs->delay_timer > 0)
+	// {
+	// 	--chip.regs->delay_timer;
+	// }
+
+	// if (chip.regs->sound_timer > 0)
+	// {
+	// 	--chip.regs->sound_timer;
+	// }
+
   return instruction;  
 }
 

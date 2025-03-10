@@ -97,6 +97,8 @@ struct Registers{
     Registers() {
         pc = ROM_START;
         sp = 0x0000;
+        sound_timer = 0;
+        delay_timer = 0;
     }
 
 };

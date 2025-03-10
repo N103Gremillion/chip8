@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstdio>
 #include <random>
+#include <chrono>
 #include "register.hpp"
 #include "screen.hpp"
 #include "debugger.hpp"
