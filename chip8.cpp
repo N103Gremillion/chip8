@@ -84,12 +84,11 @@ void run(Chip8& chip, bool debug_mode) {
 
     // show state before running an instrution
     
-    //cout << "Press any key to run next instruction..." << endl;
-    //cin.get(user_input);
+    // cout << "Press any key to run next instruction..." << endl;
+    // cin.get(user_input);
 
     if (cur_time - lastCycleTime >= cycleDelay) {
       // execute an instruction
-      // cout << "trying to perform next instruction" << endl;
       u16 instruction = fetch_instruction(chip);
       perform_instruction(instruction, chip);
       lastCycleTime = SDL_GetTicks();
@@ -100,9 +99,9 @@ void run(Chip8& chip, bool debug_mode) {
 
     // draw pixels / update screen at 60 FPS
     if (cur_time - lastRenderUpdate >= renderDelay) {
+      update_timers(chip);
       update_screen(chip.screen);
       lastRenderUpdate = SDL_GetTicks();
-      // cout << "Cycle ended" << endl;
     }
 
     SDL_Delay(1);
@@ -117,20 +116,19 @@ int get_random_num(int min, int max) {
   return dist(gen);
 }
 
+void update_timers(Chip8& chip) {
+  if (chip.regs->delay_timer > 0) {
+		--chip.regs->delay_timer;
+	}
+	if (chip.regs->sound_timer > 0) {
+		--chip.regs->sound_timer;
+	}
+}
+
 u16 fetch_instruction(Chip8& chip) {
   u16 pc = chip.regs->pc;
   u16 instruction = (chip.ram[pc] << 8) | chip.ram[pc + 1];
   chip.regs->pc+=2;
-	// if (chip.regs->delay_timer > 0)
-	// {
-	// 	--chip.regs->delay_timer;
-	// }
-
-	// if (chip.regs->sound_timer > 0)
-	// {
-	// 	--chip.regs->sound_timer;
-	// }
-
   return instruction;  
 }
 
@@ -174,7 +172,7 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       break;
     // jump to the nnn register
     case 0x1: {
-      u16 nnn = (instruction & 0x0FFFu);
+      u16 nnn = (instruction & 0x0FFF);
       chip.regs->pc = nnn;
       break;
     }
@@ -378,19 +376,19 @@ void perform_instruction(u16 instruction, Chip8& chip) {
       u8 last8 = (instruction & 0xFF);
       int x_reg_num = ((instruction >> 8) & 0xF);
       u8 Vx = get_value_in_Vreg(x_reg_num, *(chip.regs));
-      string key = get_key_from_u8(Vx);
+      int keycode = get_keycode_from_u8(Vx);
 
       switch (last8) {
         // skip next instruction if key with value of Vx is pressed
         case 0x9E: {
-          if (key_state[key]) {
+          if (key_state[keycode]) {
             chip.regs->pc += 2;
           }
           break;
         }
          // skip next instruction if key with value of Vx is not pressed
         case 0xA1: {
-          if (!key_state[key]) {
+          if (!key_state[keycode]) {
             chip.regs->pc += 2;
           }
           break;
@@ -415,37 +413,37 @@ void perform_instruction(u16 instruction, Chip8& chip) {
 
         // Wait for key press, store value in Vx
         case 0x0A: 
-          if (key_state["1"]){
+          if (key_state[KEYCODE_1]){
             put_value_in_Vreg(x_reg_num, 1, *(chip.regs));
-          } else if (key_state["2"]) {
+          } else if (key_state[KEYCODE_2]) {
             put_value_in_Vreg(x_reg_num, 2, *(chip.regs));
-          } else if (key_state["3"]) {
+          } else if (key_state[KEYCODE_3]) {
             put_value_in_Vreg(x_reg_num, 3, *(chip.regs));
-          } else if (key_state["Q"]){
+          } else if (key_state[KEYCODE_Q]){
             put_value_in_Vreg(x_reg_num, 4, *(chip.regs));
-          } else if (key_state["W"]){
+          } else if (key_state[KEYCODE_W]){
             put_value_in_Vreg(x_reg_num, 5, *(chip.regs));
-          } else if (key_state["E"]){
+          } else if (key_state[KEYCODE_E]){
             put_value_in_Vreg(x_reg_num, 6, *(chip.regs));
-          } else if (key_state["A"]){
+          } else if (key_state[KEYCODE_A]){
             put_value_in_Vreg(x_reg_num, 7, *(chip.regs));
-          } else if (key_state["S"]){
+          } else if (key_state[KEYCODE_S]){
             put_value_in_Vreg(x_reg_num, 8, *(chip.regs));
-          } else if (key_state["D"]){
+          } else if (key_state[KEYCODE_D]){
             put_value_in_Vreg(x_reg_num, 9, *(chip.regs));
-          } else if (key_state["Z"]){
+          } else if (key_state[KEYCODE_Z]){
             put_value_in_Vreg(x_reg_num, 10, *(chip.regs));
-          } else if (key_state["X"]){
+          } else if (key_state[KEYCODE_X]){
             put_value_in_Vreg(x_reg_num, 0, *(chip.regs));
-          } else if (key_state["C"]){
+          } else if (key_state[KEYCODE_C]){
             put_value_in_Vreg(x_reg_num, 11, *(chip.regs));
-          } else if (key_state["4"]){
+          } else if (key_state[KEYCODE_4]){
             put_value_in_Vreg(x_reg_num, 12, *(chip.regs));
-          } else if (key_state["R"]){
+          } else if (key_state[KEYCODE_R]){
             put_value_in_Vreg(x_reg_num, 13, *(chip.regs));
-          } else if (key_state["F"]){
+          } else if (key_state[KEYCODE_F]){
             put_value_in_Vreg(x_reg_num, 14, *(chip.regs));
-          } else if (key_state["V"]){
+          } else if (key_state[KEYCODE_V]){
             put_value_in_Vreg(x_reg_num, 15, *(chip.regs));
           } else {
             chip.regs->pc -= 2;

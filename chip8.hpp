@@ -25,6 +25,7 @@ void perform_instruction(u16 instruction, Chip8& chip);
 u16 fetch_instruction(Chip8& chip);
 void run(Chip8& chip, bool debug);
 int get_random_num(int min, int max);
+void update_timers(Chip8& chip);
 void free_chip(Chip8& chip);
 void printMemory(Chip8& chip);
 void printStack(Chip8& chip);
@@ -49,8 +50,8 @@ typedef struct Chip8{
         ram = (u8*) malloc(sizeof(u8) * RAM_SIZE);
         regs = new Registers();
         stack = (u16*) malloc(sizeof(u16) * 16);
-        init_screen(screen);
         init_debugger(debugger, *this);
+        init_screen(screen);
     };
 
 }Chip8;
