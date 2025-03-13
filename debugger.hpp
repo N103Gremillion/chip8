@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <string>
+#include <array>
 #include "register.hpp"
 
 using u16 = std::uint16_t;
@@ -28,7 +29,7 @@ typedef struct Debugger{
   // for the keys middle part
   SDL_Rect key = {200, 0, 50, 50}; // x=200, y=0, w=50, h=50
   int num_of_keys = 16;
-  array<string, 16> keys;
+  std::array<string, 16> keys;
   
   // for the registers right side
   // SDL_Rect register = {};
