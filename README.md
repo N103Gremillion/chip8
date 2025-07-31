@@ -6,11 +6,13 @@ Compiler used is g++ (note can use another one but in the run.sh script this one
 - to run you can use the ./run.sh script I made
 - to change the rom in main inside the load_rom() function you can input the file path as a string to the rom you want to run
 - there are a few games / demo roms to test on in the arrays in main
-- keypad (these are all the keys involved in the games)
+- Keys depend on the game being played
+- Keypad (these are all the keys involved in the games)
   1 2 3 4
   q w e r
   a s d f
   z x c v
+
 - you can toggle the debugg gui to render when the rom is running by change the boolean in main 
 
 Demo Example:
