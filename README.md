@@ -8,10 +8,10 @@ Compiler used is g++ (note can use another one but in the run.sh script this one
 - there are a few games / demo roms to test on in the arrays in main
 - Keys depend on the game being played
 - Keypad (these are all the keys involved in the games)
-  1 2 3 4
-  q w e r
-  a s d f
-  z x c v
+1 2 3 4
+q w e r
+a s d f
+z x c v
 
 - you can toggle the debugg gui to render when the rom is running by change the boolean in main 
 
